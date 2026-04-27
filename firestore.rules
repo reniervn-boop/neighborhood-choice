@@ -1,0 +1,65 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isOwnUser(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isOwnUser(userId);
+      allow update: if isOwnUser(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Reports collection
+    match /reports/{reportId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isOwnUser(resource.data.userId) || isAdmin();
+      allow delete: if isAdmin();
+
+      // Admin-only status updates
+      allow update: if isAdmin() && (request.resource.data.status in ['approved', 'rejected', 'submitted_to_jra']);
+    }
+
+    // Badges collection (read-only for users)
+    match /badges/{badgeId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Admin actions (audit log)
+    match /adminActions/{actionId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // JRA Submissions
+    match /jraSubmissions/{submissionId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // Newsletters
+    match /newsletters/{newsletterId} {
+      allow read: if isSignedIn();
+      allow create: if isAdmin();
+      allow write: if isAdmin();
+    }
+  }
+}
