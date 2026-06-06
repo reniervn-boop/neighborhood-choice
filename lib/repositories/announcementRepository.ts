@@ -57,9 +57,9 @@ export async function createAnnouncement(
 
 export async function getAnnouncements(limitCount = 20): Promise<Announcement[]> {
   const now = Date.now();
+  // orderBy only — no where on publishedAt to avoid Timestamp vs number type mismatch
   const q = query(
     collection(db, COL),
-    where('publishedAt', '<=', now),
     orderBy('publishedAt', 'desc'),
     limit(limitCount),
   );

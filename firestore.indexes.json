@@ -31,14 +31,6 @@
         { "fieldPath": "verified", "order": "ASCENDING" },
         { "fieldPath": "points", "order": "DESCENDING" }
       ]
-    },
-    {
-      "collectionGroup": "announcements",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "isActive", "order": "ASCENDING" },
-        { "fieldPath": "publishedAt", "order": "DESCENDING" }
-      ]
     }
   ],
   "fieldOverrides": []
