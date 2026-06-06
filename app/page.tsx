@@ -178,11 +178,9 @@ export default function Home() {
           </Link>
 
           {/* Noticeboard */}
-          <QuickCard href="/noticeboard" emoji="📢" label="Noticeboard" sub="News &amp; alerts" />
+          <QuickCard href="/noticeboard" emoji="📢" label="Noticeboard" sub="Announcements &amp; newsletters" />
           {/* Contacts */}
           <QuickCard href="/contacts" emoji="📞" label="Contacts" sub="Committee &amp; emergency" />
-          {/* Newsletters */}
-          <QuickCard href="/newsletters" emoji="📰" label="Newsletters" sub="Committee updates" />
           {/* AGM */}
           <QuickCard href="/agm" emoji="🗳" label="AGM / Voting" sub="Governance" />
           {/* Finance */}

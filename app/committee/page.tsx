@@ -282,7 +282,7 @@ export default function CommitteePage() {
             </button>
 
             <Link
-              href="/newsletters"
+              href="/noticeboard?tab=newsletters"
               className="block text-center text-sm font-semibold mt-2"
               style={{ color: 'var(--primary)' }}
             >
