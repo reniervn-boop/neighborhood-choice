@@ -45,19 +45,16 @@ export default function AppHeader({
             </button>
           ) : (
             <Link href="/" className="flex-shrink-0">
-              <div
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-xs"
-                style={{ backgroundColor: 'var(--primary)' }}
-              >
-                SX<span>7</span>
+              <div className="bg-white rounded-lg p-0.5 w-8 h-8 flex items-center justify-center overflow-hidden">
+                <img src="/sx7ra-logo.svg" alt="SX7RA" className="w-full h-full object-contain" draggable={false} />
               </div>
             </Link>
           )}
 
           {showBrand ? (
-            <p className="sx7ra-logo font-display text-2xl text-white leading-none">
-              SX<span style={{ color: 'var(--primary)' }}>7</span>RA
-            </p>
+            <div className="bg-white rounded-xl px-2 py-1">
+              <img src="/sx7ra-logo.svg" alt="SX7RA" className="h-7 w-auto" draggable={false} />
+            </div>
           ) : (
             <h1 className="text-base font-bold truncate">{title}</h1>
           )}

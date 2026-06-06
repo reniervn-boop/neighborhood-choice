@@ -12,8 +12,14 @@ export default function LoadingScreen({ message = 'Loading...' }: { message?: st
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ backgroundColor: 'var(--background)' }}>
+      <img
+        src="/sx7ra-logo.svg"
+        alt="SX7RA"
+        className="w-36 h-auto mb-8 opacity-90"
+        draggable={false}
+      />
       <div
-        className="inline-block w-12 h-12 rounded-full border-4 border-t-transparent animate-spin mb-4"
+        className="inline-block w-10 h-10 rounded-full border-4 border-t-transparent animate-spin mb-4"
         style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }}
       />
       <p className="text-gray-500 text-sm font-medium">{message}</p>

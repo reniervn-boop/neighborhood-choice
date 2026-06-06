@@ -19,17 +19,14 @@ export default function Home() {
       <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--brand-black)' }}>
         {/* Hero */}
         <div className="flex-1 flex flex-col items-center justify-center px-6 pt-16 pb-0 text-center relative overflow-hidden">
-          {/* Logo */}
-          <div className="mb-4">
-            <p className="sx7ra-logo font-display text-7xl text-white tracking-wider">
-              SX<span className="accent">7</span>RA
-            </p>
-            <p
-              className="text-white/60 text-xs font-bold uppercase tracking-[0.25em] mt-1"
-              style={{ fontFamily: 'var(--font-geist-sans)' }}
-            >
-              Sundowner Ext. 7 Residents Association
-            </p>
+          {/* Official Logo */}
+          <div className="mb-4 bg-white rounded-3xl px-6 py-4 shadow-2xl shadow-black/40">
+            <img
+              src="/sx7ra-logo.svg"
+              alt="SX7RA — Sundowner Ext 7 Residents Association"
+              className="w-60 h-auto"
+              draggable={false}
+            />
           </div>
 
           {/* Tagline */}
@@ -86,12 +83,17 @@ export default function Home() {
       <header style={{ backgroundColor: 'var(--brand-black)' }} className="text-white shadow-md">
         <div className="max-w-lg mx-auto px-4 pt-4 pb-0">
           <div className="flex items-center justify-between mb-4">
-            {/* SX7RA wordmark */}
-            <div>
-              <p className="sx7ra-logo font-display text-3xl text-white leading-none">
-                SX<span style={{ color: 'var(--primary)' }}>7</span>RA
-              </p>
-              <p className="text-white/50 text-[10px] font-semibold uppercase tracking-widest mt-0.5">
+            {/* SX7RA logo + greeting */}
+            <div className="flex flex-col gap-1">
+              <div className="bg-white rounded-xl px-2.5 py-1 inline-block">
+                <img
+                  src="/sx7ra-logo.svg"
+                  alt="SX7RA"
+                  className="h-8 w-auto"
+                  draggable={false}
+                />
+              </div>
+              <p className="text-white/50 text-[10px] font-semibold uppercase tracking-widest">
                 Good day, {user?.name?.split(' ')[0] || 'Resident'}
               </p>
             </div>
@@ -272,10 +274,10 @@ export default function Home() {
             <JoburgSkyline fill="white" />
           </div>
           <div className="relative z-10">
-            <p className="sx7ra-logo font-display text-2xl text-white">
-              SX<span style={{ color: 'var(--primary)' }}>7</span>RA
-            </p>
-            <p className="text-white/60 text-xs mt-0.5 leading-relaxed italic">
+            <div className="bg-white rounded-xl px-2.5 py-1.5 inline-block mb-1.5">
+              <img src="/sx7ra-logo.svg" alt="SX7RA" className="h-7 w-auto" draggable={false} />
+            </div>
+            <p className="text-white/60 text-xs leading-relaxed italic">
               "Working towards making SX7 a suburb of choice"
             </p>
           </div>

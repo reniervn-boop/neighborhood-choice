@@ -100,12 +100,9 @@ export default function NoticeboardPage() {
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p
-                      className="sx7ra-logo font-display text-3xl text-white leading-none mb-1"
-                      style={{ fontFamily: 'var(--font-anton), Impact, sans-serif' }}
-                    >
-                      SX<span style={{ color: 'var(--primary)' }}>7</span>RA
-                    </p>
+                    <div className="bg-white rounded-lg px-2 py-1 inline-block mb-1.5">
+                      <img src="/sx7ra-logo.svg" alt="SX7RA" className="h-7 w-auto" draggable={false} />
+                    </div>
                     <h2 className="font-extrabold text-white text-sm leading-snug">
                       {selected.title}
                     </h2>
@@ -190,16 +187,8 @@ export default function NoticeboardPage() {
 
               {/* SX7RA footer on governance items */}
               {selected.category === 'Governance' && (
-                <div className="mt-6 pt-4 border-t border-gray-100 text-center">
-                  <p
-                    className="font-display text-xl text-gray-800"
-                    style={{ fontFamily: 'var(--font-anton), Impact, sans-serif' }}
-                  >
-                    SX<span style={{ color: 'var(--primary)' }}>7</span>RA
-                  </p>
-                  <p className="text-xs text-gray-400 font-semibold uppercase tracking-widest mt-0.5">
-                    Sundowner Ext. 7 Residents Association
-                  </p>
+                <div className="mt-6 pt-4 border-t border-gray-100 flex justify-center">
+                  <img src="/sx7ra-logo.svg" alt="SX7RA" className="h-10 w-auto opacity-80" draggable={false} />
                 </div>
               )}
             </div>

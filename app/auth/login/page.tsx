@@ -71,6 +71,12 @@ export default function LoginPage() {
       </div>
 
       <div className="px-6 py-4 text-white">
+        {/* Official logo */}
+        <div className="flex justify-center mb-4">
+          <div className="bg-white rounded-2xl px-5 py-3 shadow-lg shadow-black/20">
+            <img src="/sx7ra-logo.svg" alt="SX7RA" className="w-44 h-auto" draggable={false} />
+          </div>
+        </div>
         <h1 className="text-2xl font-extrabold">Welcome Back</h1>
         <p className="text-white/70 text-sm mt-1">Sign in to your community account</p>
       </div>

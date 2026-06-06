@@ -137,13 +137,8 @@ export default function CommitteePage() {
               className="w-full mb-5 border-2 rounded-xl p-3 flex items-center gap-3 text-left transition-colors disabled:opacity-50"
               style={{ borderColor: 'var(--brand-black)', backgroundColor: '#f9f9f9' }}
             >
-              <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-                style={{ backgroundColor: 'var(--brand-black)' }}
-              >
-                <span className="sx7ra-logo font-display text-xs text-white">
-                  SX<span style={{ color: 'var(--primary)' }}>7</span>
-                </span>
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-white border border-gray-200 overflow-hidden p-0.5">
+                <img src="/sx7ra-logo.svg" alt="SX7RA" className="w-full h-full object-contain" draggable={false} />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-xs text-gray-900">
