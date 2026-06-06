@@ -13,7 +13,14 @@ export function useAuth() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Safety net: if Firebase never calls back (offline / slow mobile network),
+    // stop showing the loading spinner after 8 seconds and treat as logged-out.
+    const timeout = setTimeout(() => {
+      setLoading(false);
+    }, 8000);
+
     const unsubscribe = auth.onAuthStateChanged(async (fbUser) => {
+      clearTimeout(timeout);
       setFirebaseUser(fbUser);
 
       if (fbUser) {
@@ -34,7 +41,10 @@ export function useAuth() {
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      clearTimeout(timeout);
+      unsubscribe();
+    };
   }, []);
 
   return {
@@ -43,6 +53,11 @@ export function useAuth() {
     loading,
     error,
     isAuthenticated: !!user,
-    isAdmin: user?.role === 'admin',
+    /** Legacy admin check — kept for backward compat */
+    isAdmin: user?.role === 'admin' || user?.role === 'committee' || user?.role === 'super_admin',
+    isCommittee: user?.role === 'committee' || user?.role === 'super_admin',
+    isSuperAdmin: user?.role === 'super_admin',
+    /** Any elevated role */
+    isStaff: user?.role !== 'resident' && !!user,
   };
 }

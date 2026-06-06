@@ -9,13 +9,21 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@tiptap/extension-placeholder": "^3.23.6",
+    "@tiptap/react": "^3.23.6",
+    "@tiptap/starter-kit": "^3.23.6",
+    "@types/leaflet": "^1.9.21",
+    "@types/uuid": "^10.0.0",
     "firebase": "^12.12.1",
     "firebase-admin": "^13.8.0",
+    "leaflet": "^1.9.4",
     "next": "16.2.4",
     "next-env": "^1.1.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hot-toast": "^2.6.0",
+    "resend": "^6.12.3",
+    "uuid": "^14.0.0",
     "zustand": "^5.0.12"
   },
   "devDependencies": {

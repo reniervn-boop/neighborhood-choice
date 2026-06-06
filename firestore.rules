@@ -3,63 +3,162 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
+    // ─── Helper Functions ─────────────────────────────────────────────────────
+
     function isSignedIn() {
       return request.auth != null;
     }
 
+    function userRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
     function isAdmin() {
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return isSignedIn() && userRole() == 'admin';
+    }
+
+    function isCommittee() {
+      return isSignedIn() && (userRole() == 'committee' || userRole() == 'super_admin');
+    }
+
+    function isSuperAdmin() {
+      return isSignedIn() && userRole() == 'super_admin';
+    }
+
+    /** Any elevated role: admin, committee, or super_admin */
+    function isStaff() {
+      return isSignedIn() && userRole() in ['admin', 'committee', 'super_admin'];
     }
 
     function isOwnUser(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Users collection
+    // ─── Users ────────────────────────────────────────────────────────────────
     match /users/{userId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn() && isOwnUser(userId);
-      allow update: if isOwnUser(userId) || isAdmin();
-      allow delete: if isAdmin();
+      allow update: if isOwnUser(userId) || isStaff();
+      allow delete: if isAdmin() || isSuperAdmin();
     }
 
-    // Reports collection
+    // ─── Reports ──────────────────────────────────────────────────────────────
     match /reports/{reportId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn();
-      allow update: if isOwnUser(resource.data.userId) || isAdmin();
-      allow delete: if isAdmin();
-
-      // Admin-only status updates
-      allow update: if isAdmin() && (request.resource.data.status in ['approved', 'rejected', 'submitted_to_jra']);
+      allow update: if isOwnUser(resource.data.userId) || isStaff();
+      allow delete: if isStaff();
     }
 
-    // Badges collection (read-only for users)
+    // ─── Badges (read-only for residents) ────────────────────────────────────
     match /badges/{badgeId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow write: if isStaff();
     }
 
-    // Admin actions (audit log)
+    // ─── Admin / audit log ────────────────────────────────────────────────────
     match /adminActions/{actionId} {
-      allow read: if isAdmin();
-      allow create: if isAdmin();
-      allow write: if isAdmin();
+      allow read: if isStaff();
+      allow write: if isStaff();
     }
 
-    // JRA Submissions
+    // ─── JRA Submissions ──────────────────────────────────────────────────────
     match /jraSubmissions/{submissionId} {
-      allow read: if isAdmin();
-      allow create: if isAdmin();
-      allow write: if isAdmin();
+      allow read: if isStaff();
+      allow write: if isStaff();
     }
 
-    // Newsletters
+    // ─── Municipality Submissions ─────────────────────────────────────────────
+    match /submissions/{submissionId} {
+      allow read: if isStaff();
+      allow create: if isSignedIn();
+      allow update: if isStaff();
+      allow delete: if isStaff();
+    }
+
+    // ─── Newsletters ──────────────────────────────────────────────────────────
     match /newsletters/{newsletterId} {
       allow read: if isSignedIn();
-      allow create: if isAdmin();
-      allow write: if isAdmin();
+      allow write: if isStaff();
+    }
+
+    // ─── Noticeboard: Announcements ───────────────────────────────────────────
+    match /announcements/{announcementId} {
+      // All signed-in residents can read
+      allow read: if isSignedIn();
+      // Only committee or above can create/update/delete
+      allow create: if isCommittee();
+      allow update: if isCommittee();
+      allow delete: if isCommittee();
+    }
+
+    // ─── Noticeboard: Local Alerts ────────────────────────────────────────────
+    match /localAlerts/{alertId} {
+      allow read: if isSignedIn();
+      allow create: if isCommittee();
+      allow update: if isCommittee();
+      allow delete: if isCommittee();
+    }
+
+    // ─── AGM Windows ─────────────────────────────────────────────────────────
+    match /agmWindows/{agmId} {
+      // All residents can read AGM details
+      allow read: if isSignedIn();
+      // Only super_admin can create/modify AGM windows
+      allow create: if isSuperAdmin();
+      allow update: if isCommittee(); // committee can update status
+      allow delete: if isSuperAdmin();
+    }
+
+    // ─── AGM Nominations ─────────────────────────────────────────────────────
+    match /nominations/{nominationId} {
+      // All residents can read nominations
+      allow read: if isSignedIn();
+      // Any authenticated resident can submit a nomination
+      allow create: if isSignedIn();
+      // Nominee can accept/decline; committee can manage
+      allow update: if isSignedIn() && (
+        // nominee accepts/declines their own nomination
+        resource.data.nomineeId == request.auth.uid ||
+        isCommittee()
+      );
+      allow delete: if isCommittee();
+    }
+
+    // ─── AGM Votes ────────────────────────────────────────────────────────────
+    match /votes/{voteId} {
+      // Only committee can read individual votes (privacy)
+      // Results are computed server-side or via committee-visible aggregation
+      allow read: if isCommittee();
+      // Any authenticated resident can cast a vote
+      // The document ID encodes the address hash, preventing duplicates via setDoc
+      allow create: if isSignedIn();
+      // Allow update so a household can change their vote during open window
+      allow update: if isSignedIn();
+      allow delete: if isSuperAdmin();
+    }
+
+    // ─── Community Projects (Finance) ─────────────────────────────────────────
+    match /communityProjects/{projectId} {
+      // All residents can read projects
+      allow read: if isSignedIn();
+      // Only committee can create/update projects
+      allow create: if isCommittee();
+      allow update: if isCommittee();
+      allow delete: if isSuperAdmin();
+    }
+
+    // ─── Donations ────────────────────────────────────────────────────────────
+    match /donations/{donationId} {
+      // Donor can read their own donations; committee can read all
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || isCommittee()
+      );
+      // Any resident can create a pending donation
+      allow create: if isSignedIn();
+      // Only committee/admin can confirm donations (e.g. payment webhook verification)
+      allow update: if isCommittee();
+      allow delete: if isSuperAdmin();
     }
   }
 }

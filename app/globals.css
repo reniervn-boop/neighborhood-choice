@@ -1,8 +1,23 @@
 @import "tailwindcss";
 
+/* ─── SX7RA Brand Palette ───────────────────────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f4f4f4;
+  --foreground: #111111;
+
+  /* Primary: SX7RA red (the "7") */
+  --primary: #CC1212;
+  --primary-dark: #A50E0E;
+  --primary-light: #E63329;
+  --primary-bg: #FFF0F0;
+
+  /* Brand black for nav, headers, logo */
+  --brand-black: #111111;
+  --brand-black-soft: #1E1E1E;
+
+  /* Neutral */
+  --border: #E5E7EB;
+  --card: #FFFFFF;
 }
 
 @theme inline {
@@ -10,17 +25,61 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-anton);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* ─── Base ───────────────────────────────────────────────────────────────────── */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), 'Inter', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* Display / heading font (Anton — bold condensed, matches SX7RA brand) */
+.font-display {
+  font-family: var(--font-anton), 'Impact', 'Arial Black', sans-serif;
+  letter-spacing: 0.02em;
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 2px;
+}
+
+/* ─── Safe area helpers ──────────────────────────────────────────────────────── */
+.pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+.bottom-nav {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+
+/* ─── SX7RA Logo text ────────────────────────────────────────────────────────── */
+/* Used in hero: SX + 7 (red) + RA */
+.sx7ra-logo {
+  font-family: var(--font-anton), 'Impact', 'Arial Black', sans-serif;
+  letter-spacing: 0.03em;
+  line-height: 1;
+}
+.sx7ra-logo .accent {
+  color: var(--primary);
+}
+
+/* ─── Prose (rich-text announcement bodies) ─────────────────────────────────── */
+.prose h2 { font-size: 1.1rem; font-weight: 800; margin: 1rem 0 0.4rem; color: var(--brand-black); }
+.prose h3 { font-size: 0.95rem; font-weight: 800; margin: 0.9rem 0 0.3rem; color: var(--brand-black); }
+.prose p  { margin: 0.5rem 0; font-size: 0.875rem; line-height: 1.6; color: #374151; }
+.prose ul { margin: 0.5rem 0 0.5rem 1.2rem; list-style-type: disc; }
+.prose ol { margin: 0.5rem 0 0.5rem 1.2rem; list-style-type: decimal; }
+.prose li { font-size: 0.875rem; line-height: 1.6; color: #374151; margin-bottom: 0.25rem; }
+.prose strong { font-weight: 700; color: var(--brand-black); }
+.prose em { font-style: italic; }
+.prose a  { color: var(--primary); text-decoration: underline; }
+
+/* ─── Joburg skyline decoration ─────────────────────────────────────────────── */
+.skyline-fill { fill: var(--brand-black); }

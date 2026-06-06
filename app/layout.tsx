@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Anton, Creepster } from "next/font/google";
 import { Providers } from "./providers";
+import BottomNav from "@/components/BottomNav";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -8,17 +9,29 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const anton = Anton({
+  variable: "--font-anton",
   subsets: ["latin"],
+  weight: "400", // Anton only has one weight — it's inherently bold/display
+});
+
+const creepster = Creepster({
+  variable: "--font-creepster",
+  subsets: ["latin"],
+  weight: "400", // Creepster is a single-weight display font for Halloween
 });
 
 export const metadata: Metadata = {
-  title: "Neighborhood of Choice",
-  description: "Civic engagement app for community issue reporting with gamification",
+  title: "SX7RA — Sundowner Ext. 7",
+  description: "Sundowner Ext. 7 Residents Association — suburb reporting, noticeboard and community app",
   manifest: "/manifest.json",
-  themeColor: "#3b82f6",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=5",
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#111111",
 };
 
 export default function RootLayout({
@@ -27,18 +40,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
+    <html lang="en" className={`${geistSans.variable} ${anton.variable} ${creepster.variable} h-full antialiased`}>
       <head>
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Neighborhood Choice" />
+        <meta name="apple-mobile-web-app-title" content="SX7RA" />
       </head>
-      <body className="min-h-full flex flex-col bg-gray-50">
-        <Providers>{children}</Providers>
+      <body className="min-h-full flex flex-col" style={{ backgroundColor: 'var(--background)' }}>
+        <Providers>
+          {children}
+          <BottomNav />
+        </Providers>
       </body>
     </html>
   );
