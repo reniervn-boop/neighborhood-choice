@@ -34,7 +34,7 @@ export interface User {
 
   // ─── Membership Status (Constitution Enforcement) ───────────────────────────
   /** Paying or non-paying member status per SX7RA Constitution */
-  membershipStatus: MembershipStatus;
+  membershipStatus?: MembershipStatus;
   /** Date last annual fee was paid (timestamp) */
   lastFeePaymentDate?: number;
   /** When annual fee is due for next payment (timestamp) */

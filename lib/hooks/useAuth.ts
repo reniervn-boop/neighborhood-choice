@@ -27,7 +27,15 @@ export function useAuth() {
         try {
           const userDoc = await getDoc(doc(db, 'users', fbUser.uid));
           if (userDoc.exists()) {
-            setUser(userDoc.data() as User);
+            const userData = userDoc.data();
+            // Provide defaults for new membership fields if missing
+            const user: User = {
+              ...userData,
+              membershipStatus: userData.membershipStatus || 'non-paying',
+              canVote: userData.canVote !== undefined ? userData.canVote : false,
+              canStandForOffice: userData.canStandForOffice !== undefined ? userData.canStandForOffice : false,
+            } as User;
+            setUser(user);
           } else {
             setError('User profile not found');
           }
