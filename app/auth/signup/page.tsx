@@ -54,27 +54,34 @@ export default function SignupPage() {
 
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 
-      await createUser(userCredential.user.uid, {
-        email,
-        name,
-        unitBlock,
-        verified: !!inviteCode,
-        points: 0,
-        badges: [],
-        notificationPrefs: {
-          realTime: true,
-          weeklyDigest: true,
-        },
-        role: 'resident',
-        membershipStatus: 'non-paying',
-        canVote: false,
-        canStandForOffice: false,
-      });
+      try {
+        await createUser(userCredential.user.uid, {
+          email,
+          name,
+          unitBlock,
+          verified: !!inviteCode,
+          points: 0,
+          badges: [],
+          notificationPrefs: {
+            realTime: true,
+            weeklyDigest: true,
+          },
+          role: 'resident',
+          membershipStatus: 'non-paying',
+          canVote: false,
+          canStandForOffice: false,
+        });
+      } catch (dbError) {
+        console.warn('Profile creation delayed:', dbError);
+        // Profile will be created on first login if Firestore write failed
+      }
 
       toast.success('Welcome to the community!');
       router.push('/');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Signup failed');
+      const errorMessage = error instanceof Error ? error.message : 'Signup failed';
+      console.error('Signup error:', error);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

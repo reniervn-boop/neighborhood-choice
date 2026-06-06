@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { User as FirebaseUser } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase/config';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { User } from '@/lib/types';
 
 export function useAuth() {
@@ -37,7 +37,31 @@ export function useAuth() {
             } as User;
             setUser(user);
           } else {
-            setError('User profile not found');
+            // Create profile on first login if missing (handles signup Firestore failures)
+            try {
+              const defaultUser: User = {
+                uid: fbUser.uid,
+                email: fbUser.email || '',
+                name: fbUser.displayName || 'Resident',
+                unitBlock: '',
+                verified: false,
+                joinedAt: Date.now(),
+                points: 0,
+                badges: [],
+                notificationPrefs: {
+                  realTime: true,
+                  weeklyDigest: true,
+                },
+                role: 'resident',
+                membershipStatus: 'non-paying',
+                canVote: false,
+                canStandForOffice: false,
+              };
+              await setDoc(doc(db, 'users', fbUser.uid), defaultUser);
+              setUser(defaultUser);
+            } catch (createErr) {
+              setError('Failed to initialize user profile');
+            }
           }
         } catch (err) {
           setError(err instanceof Error ? err.message : 'Failed to load user');
