@@ -37,31 +37,33 @@ export function useAuth() {
             } as User;
             setUser(user);
           } else {
-            // Create profile on first login if missing (handles signup Firestore failures)
+            // Profile doesn't exist — build a default and always set the user
+            // so auth never loops, even if the Firestore write fails.
+            const defaultUser: User = {
+              uid: fbUser.uid,
+              email: fbUser.email || '',
+              name: fbUser.displayName || 'Resident',
+              unitBlock: '',
+              verified: false,
+              joinedAt: Date.now(),
+              points: 0,
+              badges: [],
+              notificationPrefs: {
+                realTime: true,
+                weeklyDigest: true,
+              },
+              role: 'resident',
+              membershipStatus: 'non-paying',
+              canVote: false,
+              canStandForOffice: false,
+            };
+            // Best-effort write — if Firestore rules block it we still log the user in
             try {
-              const defaultUser: User = {
-                uid: fbUser.uid,
-                email: fbUser.email || '',
-                name: fbUser.displayName || 'Resident',
-                unitBlock: '',
-                verified: false,
-                joinedAt: Date.now(),
-                points: 0,
-                badges: [],
-                notificationPrefs: {
-                  realTime: true,
-                  weeklyDigest: true,
-                },
-                role: 'resident',
-                membershipStatus: 'non-paying',
-                canVote: false,
-                canStandForOffice: false,
-              };
               await setDoc(doc(db, 'users', fbUser.uid), defaultUser);
-              setUser(defaultUser);
             } catch (createErr) {
-              setError('Failed to initialize user profile');
+              console.warn('Profile write failed (Firestore rules may need updating):', createErr);
             }
+            setUser(defaultUser);
           }
         } catch (err) {
           setError(err instanceof Error ? err.message : 'Failed to load user');
