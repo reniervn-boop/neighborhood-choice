@@ -244,9 +244,10 @@ function NewsletterCard({ newsletter }: { newsletter: Newsletter }) {
     day: 'numeric', month: 'long', year: 'numeric',
   });
   const url = newsletter.pdfUrl || newsletter.externalUrl;
+  const isPdf = Boolean(newsletter.pdfUrl);
 
-  return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden transition-transform active:scale-[0.98]">
+  const inner = (
+    <>
       <div className="flex items-start gap-4 p-4">
         {newsletter.thumbnailUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -258,9 +259,13 @@ function NewsletterCard({ newsletter }: { newsletter: Newsletter }) {
         ) : (
           <div
             className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: 'var(--primary-bg)' }}
+            style={{ backgroundColor: url ? 'var(--primary-bg)' : '#f3f4f6' }}
           >
-            <svg className="w-7 h-7" style={{ color: 'var(--primary)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <svg
+              className="w-7 h-7"
+              style={{ color: url ? 'var(--primary)' : '#9ca3af' }}
+              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
             </svg>
           </div>
@@ -280,23 +285,48 @@ function NewsletterCard({ newsletter }: { newsletter: Newsletter }) {
           )}
           <p className="text-gray-400 text-xs mt-1">{date} · {newsletter.authorName}</p>
         </div>
+        {/* Chevron only when there's a link */}
+        {url && (
+          <svg className="w-5 h-5 text-gray-300 flex-shrink-0 self-center" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        )}
       </div>
-      {url && (
-        <div className="border-t border-gray-100 px-4 py-2.5">
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 text-sm font-bold"
-            style={{ color: 'var(--primary)' }}
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+
+      {/* Footer: link label when url present, or "no link" notice */}
+      <div className="border-t border-gray-100 px-4 py-2.5 flex items-center gap-2">
+        {url ? (
+          <>
+            <svg className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--primary)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
-            {newsletter.pdfUrl ? 'Open PDF' : 'View Newsletter'}
-          </a>
-        </div>
-      )}
+            <span className="text-sm font-bold" style={{ color: 'var(--primary)' }}>
+              {isPdf ? 'Open PDF' : 'Read Newsletter'}
+            </span>
+          </>
+        ) : (
+          <span className="text-xs text-gray-400 italic">No link attached — contact the committee</span>
+        )}
+      </div>
+    </>
+  );
+
+  if (url) {
+    return (
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden transition-transform active:scale-[0.98]"
+      >
+        {inner}
+      </a>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden opacity-80">
+      {inner}
     </div>
   );
 }
