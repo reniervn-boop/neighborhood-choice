@@ -80,6 +80,35 @@ export async function rejectReport(reportId: string, adminId: string): Promise<v
   });
 }
 
+/** Fetch ALL reports regardless of status, newest first. Used by the committee panel. */
+export async function getAllReports(limitCount = 300): Promise<Report[]> {
+  const q = query(
+    collection(db, 'reports'),
+    orderBy('createdAt', 'desc'),
+    limit(limitCount)
+  );
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Report));
+}
+
+/** Save a committee note (and optional council reference) on a report document. */
+export async function addCommitteeNote(
+  reportId: string,
+  note: string,
+  committeeUserId: string,
+  councilReference?: string
+): Promise<void> {
+  const reportRef = doc(db, 'reports', reportId);
+  await updateDoc(reportRef, {
+    committeeNote: note,
+    committeeNoteAt: Timestamp.now().toMillis(),
+    committeeNoteBy: committeeUserId,
+    ...(councilReference
+      ? { councilReference, escalatedAt: Timestamp.now().toMillis() }
+      : {}),
+  });
+}
+
 export async function markReportAsSubmittedToJRA(
   reportId: string,
   submissionId: string,

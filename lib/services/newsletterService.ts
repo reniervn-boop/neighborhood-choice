@@ -6,6 +6,7 @@ import {
   deleteDoc,
   doc,
   updateDoc,
+  setDoc,
   orderBy,
   query,
   limit,
@@ -37,6 +38,23 @@ export async function createNewsletter(
 ): Promise<string> {
   const ref = await addDoc(collection(db, 'newsletters'), data);
   return ref.id;
+}
+
+/**
+ * Create a newsletter document with a pre-determined ID.
+ * Used when a PDF must be uploaded before the doc is created
+ * (so we know the storage path = newsletters/{id}/...).
+ */
+export async function createNewsletterWithId(
+  id: string,
+  data: Omit<Newsletter, 'id'>
+): Promise<void> {
+  await setDoc(doc(db, 'newsletters', id), data);
+}
+
+/** Generate a new Firestore document ID without creating the document. */
+export function newNewsletterRef(): string {
+  return doc(collection(db, 'newsletters')).id;
 }
 
 export async function updateNewsletter(

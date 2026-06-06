@@ -1,12 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import {
   getNewsletters,
-  createNewsletter,
+  createNewsletterWithId,
+  newNewsletterRef,
   updateNewsletter,
   deleteNewsletter,
+  uploadNewsletterPdf,
+  deleteNewsletterPdf,
 } from '@/lib/services/newsletterService';
 import { Newsletter } from '@/lib/types';
 
@@ -25,18 +28,25 @@ const EMPTY_FORM = {
 };
 
 export default function NewsletterManager({ userId, userName }: Props) {
-  const [mode, setMode] = useState<Mode>('list');
+  const [mode, setMode]               = useState<Mode>('list');
   const [newsletters, setNewsletters] = useState<Newsletter[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState<Newsletter | null>(null);
+  const [loading, setLoading]         = useState(true);
+  const [editing, setEditing]         = useState<Newsletter | null>(null);
 
-  // Form state
-  const [form, setForm] = useState({ ...EMPTY_FORM });
-  const [saving, setSaving] = useState(false);
+  // Form
+  const [form, setForm]               = useState({ ...EMPTY_FORM });
+  const [pdfFile, setPdfFile]         = useState<File | null>(null);
+  const [uploadPct, setUploadPct]     = useState(0);
+  const [uploading, setUploading]     = useState(false);
+  const [saving, setSaving]           = useState(false);
+  const fileInputRef                  = useRef<HTMLInputElement>(null);
+
+  // Delete
   const [deleteTarget, setDeleteTarget] = useState<Newsletter | null>(null);
-  const [deleting, setDeleting] = useState(false);
+  const [deleting, setDeleting]         = useState(false);
 
-  // Load list
+  // ── Load ────────────────────────────────────────────────────────────────────
+
   const load = async () => {
     setLoading(true);
     try {
@@ -51,56 +61,127 @@ export default function NewsletterManager({ userId, userName }: Props) {
 
   useEffect(() => { load(); }, []);
 
-  // Open create form
+  // ── Mode helpers ─────────────────────────────────────────────────────────────
+
   const openCreate = () => {
     setEditing(null);
     setForm({ ...EMPTY_FORM });
+    setPdfFile(null);
+    setUploadPct(0);
     setMode('create');
   };
 
-  // Open edit form pre-filled
   const openEdit = (nl: Newsletter) => {
     setEditing(nl);
     setForm({
-      title: nl.title,
-      edition: nl.edition ?? '',
+      title:       nl.title,
+      edition:     nl.edition ?? '',
       description: nl.description ?? '',
-      url: nl.pdfUrl ?? nl.externalUrl ?? '',
+      url:         nl.pdfUrl ?? nl.externalUrl ?? '',
     });
+    setPdfFile(null);
+    setUploadPct(0);
     setMode('edit');
   };
 
   const cancel = () => {
     setMode('list');
     setEditing(null);
+    setPdfFile(null);
   };
 
-  // Save (create or update)
+  // ── File pick ────────────────────────────────────────────────────────────────
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.type !== 'application/pdf') {
+      toast.error('Please select a PDF file');
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error('File must be under 20 MB');
+      return;
+    }
+    setPdfFile(file);
+    // Clear the URL field — PDF takes precedence
+    setForm(f => ({ ...f, url: '' }));
+  };
+
+  // ── Save ─────────────────────────────────────────────────────────────────────
+
   const handleSave = async () => {
     if (!form.title.trim()) { toast.error('Title is required'); return; }
 
     setSaving(true);
     try {
-      const rawUrl = form.url.trim();
-      const isPdf = rawUrl.toLowerCase().includes('.pdf') || rawUrl.includes('drive.google') && rawUrl.includes('export=download');
+      let pdfUrl: string | undefined      = undefined;
+      let externalUrl: string | undefined = undefined;
 
-      const payload: Omit<Newsletter, 'id'> = {
-        title: form.title.trim(),
-        edition: form.edition.trim() || undefined,
-        description: form.description.trim() || undefined,
-        pdfUrl: isPdf ? rawUrl || undefined : undefined,
-        externalUrl: !isPdf ? rawUrl || undefined : undefined,
-        publishedAt: editing?.publishedAt ?? Date.now(),
-        authorId: editing?.authorId ?? userId,
-        authorName: editing?.authorName ?? userName,
-      };
+      if (pdfFile) {
+        // ── Upload new PDF ──
+        setUploading(true);
+        setUploadPct(0);
 
-      if (mode === 'create') {
-        await createNewsletter(payload);
-        toast.success('Newsletter published!');
-      } else if (editing) {
-        await updateNewsletter(editing.id, payload);
-        toast.success('Newsletter updated!');
+        // For new newsletters we need the ID before creating the doc
+        const newsletterId = editing?.id ?? newNewsletterRef();
+
+        // Delete old PDF if replacing
+        if (editing?.pdfUrl) {
+          await deleteNewsletterPdf(editing.pdfUrl).catch(() => {/* ignore */});
+        }
+
+        pdfUrl = await uploadNewsletterPdf(pdfFile, newsletterId, (pct) => {
+          setUploadPct(pct);
+        });
+        setUploading(false);
+
+        const payload: Omit<Newsletter, 'id'> = {
+          title:       form.title.trim(),
+          edition:     form.edition.trim()      || undefined,
+          description: form.description.trim()  || undefined,
+          pdfUrl,
+          externalUrl: undefined,
+          publishedAt: editing?.publishedAt      ?? Date.now(),
+          authorId:    editing?.authorId         ?? userId,
+          authorName:  editing?.authorName       ?? userName,
+        };
+
+        if (mode === 'create') {
+          await createNewsletterWithId(newsletterId, payload);
+          toast.success('Newsletter published!');
+        } else if (editing) {
+          await updateNewsletter(editing.id, payload);
+          toast.success('Newsletter updated!');
+        }
+
+      } else {
+        // ── URL-only path ──
+        const rawUrl = form.url.trim();
+        const isPdf  = rawUrl.toLowerCase().includes('.pdf') ||
+                       (rawUrl.includes('drive.google') && rawUrl.includes('export=download'));
+
+        pdfUrl      = isPdf  ? rawUrl || undefined : undefined;
+        externalUrl = !isPdf ? rawUrl || undefined : undefined;
+
+        const payload: Omit<Newsletter, 'id'> = {
+          title:       form.title.trim(),
+          edition:     form.edition.trim()      || undefined,
+          description: form.description.trim()  || undefined,
+          pdfUrl,
+          externalUrl,
+          publishedAt: editing?.publishedAt      ?? Date.now(),
+          authorId:    editing?.authorId         ?? userId,
+          authorName:  editing?.authorName       ?? userName,
+        };
+
+        if (mode === 'create') {
+          await createNewsletterWithId(newNewsletterRef(), payload);
+          toast.success('Newsletter published!');
+        } else if (editing) {
+          await updateNewsletter(editing.id, payload);
+          toast.success('Newsletter updated!');
+        }
       }
 
       await load();
@@ -110,17 +191,22 @@ export default function NewsletterManager({ userId, userName }: Props) {
       toast.error('Save failed — please try again');
     } finally {
       setSaving(false);
+      setUploading(false);
     }
   };
 
-  // Delete with confirmation
+  // ── Delete ───────────────────────────────────────────────────────────────────
+
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
+      if (deleteTarget.pdfUrl) {
+        await deleteNewsletterPdf(deleteTarget.pdfUrl).catch(() => {/* ignore */});
+      }
       await deleteNewsletter(deleteTarget.id);
       toast.success('Deleted');
-      setNewsletters((prev) => prev.filter((n) => n.id !== deleteTarget.id));
+      setNewsletters(prev => prev.filter(n => n.id !== deleteTarget.id));
     } catch {
       toast.error('Delete failed');
     } finally {
@@ -129,7 +215,8 @@ export default function NewsletterManager({ userId, userName }: Props) {
     }
   };
 
-  // ── List view ──────────────────────────────────────────────────────────────
+  // ── List view ────────────────────────────────────────────────────────────────
+
   if (mode === 'list') {
     return (
       <div>
@@ -162,7 +249,7 @@ export default function NewsletterManager({ userId, userName }: Props) {
 
         {!loading && newsletters.length > 0 && (
           <div className="space-y-2">
-            {newsletters.map((nl) => (
+            {newsletters.map(nl => (
               <div
                 key={nl.id}
                 className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 flex items-center gap-3"
@@ -176,9 +263,13 @@ export default function NewsletterManager({ userId, userName }: Props) {
                     <svg className="w-5 h-5" style={{ color: 'var(--primary)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                  ) : (
+                  ) : nl.externalUrl ? (
                     <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   )}
                 </div>
@@ -189,7 +280,7 @@ export default function NewsletterManager({ userId, userName }: Props) {
                   <p className="text-gray-400 text-xs mt-0.5">
                     {nl.edition ? `${nl.edition} · ` : ''}
                     {new Date(nl.publishedAt).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })}
-                    {nl.pdfUrl ? ' · PDF' : nl.externalUrl ? ' · Link' : ' · No link'}
+                    {nl.pdfUrl ? ' · PDF' : nl.externalUrl ? ' · Link' : ' · No file'}
                   </p>
                 </div>
 
@@ -220,7 +311,7 @@ export default function NewsletterManager({ userId, userName }: Props) {
           </div>
         )}
 
-        {/* Delete confirmation dialog */}
+        {/* Delete confirmation */}
         {deleteTarget && (
           <div className="fixed inset-0 z-50 flex items-center justify-center px-6">
             <div className="absolute inset-0 bg-black/50" onClick={() => setDeleteTarget(null)} />
@@ -254,10 +345,14 @@ export default function NewsletterManager({ userId, userName }: Props) {
     );
   }
 
-  // ── Create / Edit form ─────────────────────────────────────────────────────
+  // ── Create / Edit form ────────────────────────────────────────────────────────
+
+  const existingPdfUrl = editing?.pdfUrl;
+  const existingLinkUrl = editing?.externalUrl;
+
   return (
     <div>
-      {/* Form header */}
+      {/* Back + title */}
       <div className="flex items-center gap-3 mb-5">
         <button
           onClick={cancel}
@@ -273,6 +368,7 @@ export default function NewsletterManager({ userId, userName }: Props) {
       </div>
 
       <div className="space-y-4">
+
         {/* Title */}
         <div>
           <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
@@ -281,7 +377,7 @@ export default function NewsletterManager({ userId, userName }: Props) {
           <input
             type="text"
             value={form.title}
-            onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+            onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
             placeholder="e.g. May 2026 Committee Update"
             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none text-sm"
           />
@@ -293,7 +389,7 @@ export default function NewsletterManager({ userId, userName }: Props) {
           <input
             type="text"
             value={form.edition}
-            onChange={(e) => setForm((f) => ({ ...f, edition: e.target.value }))}
+            onChange={e => setForm(f => ({ ...f, edition: e.target.value }))}
             placeholder="e.g. Vol 1 · May 2026 (optional)"
             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none text-sm"
           />
@@ -304,38 +400,120 @@ export default function NewsletterManager({ userId, userName }: Props) {
           <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Description</label>
           <textarea
             value={form.description}
-            onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+            onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
             placeholder="Short summary shown on the board (optional)"
             rows={2}
             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none text-sm resize-none"
           />
         </div>
 
-        {/* PDF / Link URL */}
+        {/* ── PDF Upload ── */}
         <div>
           <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-            PDF or Link URL
+            PDF File
+          </label>
+
+          {/* Current PDF badge (edit mode) */}
+          {existingPdfUrl && !pdfFile && (
+            <div className="flex items-center gap-2 mb-2 px-3 py-2 bg-green-50 border border-green-100 rounded-xl">
+              <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <p className="text-xs text-green-700 flex-1">PDF already attached — upload a new one to replace it</p>
+            </div>
+          )}
+
+          {/* File chosen indicator */}
+          {pdfFile && (
+            <div className="flex items-center gap-2 mb-2 px-3 py-2 rounded-xl border"
+              style={{ backgroundColor: 'var(--primary-bg)', borderColor: 'var(--primary)' }}>
+              <svg className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--primary)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <p className="text-xs flex-1 truncate" style={{ color: 'var(--primary)' }}>
+                {pdfFile.name} ({(pdfFile.size / 1024 / 1024).toFixed(1)} MB)
+              </p>
+              <button onClick={() => { setPdfFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+                className="text-gray-400 text-xs">✕</button>
+            </div>
+          )}
+
+          {/* Upload progress */}
+          {uploading && (
+            <div className="mb-2">
+              <div className="flex justify-between text-xs text-gray-500 mb-1">
+                <span>Uploading…</span>
+                <span>{uploadPct}%</span>
+              </div>
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{ width: `${uploadPct}%`, backgroundColor: 'var(--primary)' }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* File picker button */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/pdf,.pdf"
+            onChange={handleFileChange}
+            className="hidden"
+            id="pdf-upload"
+          />
+          <label
+            htmlFor="pdf-upload"
+            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 text-sm font-semibold text-gray-500 cursor-pointer hover:bg-gray-100 transition-colors active:scale-[0.98]"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            {pdfFile ? 'Choose a different PDF' : 'Upload PDF (max 20 MB)'}
+          </label>
+        </div>
+
+        {/* ── OR divider ── */}
+        <div className="relative flex items-center">
+          <div className="flex-1 border-t border-gray-200" />
+          <span className="px-3 text-xs text-gray-400 font-medium">or paste a link instead</span>
+          <div className="flex-1 border-t border-gray-200" />
+        </div>
+
+        {/* ── URL fallback ── */}
+        <div>
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+            External URL {pdfFile && <span className="text-gray-300 font-normal">(ignored — PDF selected above)</span>}
           </label>
           <input
             type="url"
             value={form.url}
-            onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
-            placeholder="https://drive.google.com/… or any link"
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none text-sm"
+            onChange={e => { setForm(f => ({ ...f, url: e.target.value })); if (e.target.value) setPdfFile(null); }}
+            placeholder="https://drive.google.com/… or any public link"
+            disabled={!!pdfFile}
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none text-sm disabled:opacity-40"
           />
 
-          {/* Google Drive how-to */}
-          <div className="mt-2 p-3 rounded-xl bg-blue-50 border border-blue-100">
-            <p className="text-xs font-bold text-blue-700 mb-1.5">
-              📎 How to share a PDF via Google Drive
+          {/* Google Drive guide — only show when no PDF is selected and no URL yet */}
+          {!pdfFile && !form.url && (
+            <div className="mt-2 p-3 rounded-xl bg-blue-50 border border-blue-100">
+              <p className="text-xs font-bold text-blue-700 mb-1.5">📎 How to share via Google Drive</p>
+              <ol className="text-xs text-blue-600 space-y-1 leading-relaxed list-decimal list-inside">
+                <li>Upload your PDF to Google Drive</li>
+                <li>Right-click → <strong>Share</strong></li>
+                <li>Set access to <strong>Anyone with the link</strong></li>
+                <li>Click <strong>Copy link</strong> and paste above</li>
+              </ol>
+            </div>
+          )}
+
+          {/* Show existing link if editing */}
+          {existingLinkUrl && !pdfFile && !form.url && (
+            <p className="text-xs text-gray-400 mt-1.5">
+              Current link: <a href={existingLinkUrl} target="_blank" rel="noopener noreferrer" className="underline">{existingLinkUrl.slice(0, 50)}…</a>
             </p>
-            <ol className="text-xs text-blue-600 space-y-1 leading-relaxed list-decimal list-inside">
-              <li>Upload your PDF to Google Drive</li>
-              <li>Right-click the file → <strong>Share</strong></li>
-              <li>Set access to <strong>Anyone with the link</strong></li>
-              <li>Click <strong>Copy link</strong> and paste it above</li>
-            </ol>
-          </div>
+          )}
         </div>
 
         {/* Actions */}
@@ -343,18 +521,19 @@ export default function NewsletterManager({ userId, userName }: Props) {
           <button
             type="button"
             onClick={cancel}
-            className="flex-1 py-3.5 rounded-xl border-2 border-gray-200 text-gray-700 font-bold text-sm"
+            disabled={uploading}
+            className="flex-1 py-3.5 rounded-xl border-2 border-gray-200 text-gray-700 font-bold text-sm disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || uploading}
             className="flex-1 py-3.5 rounded-xl text-white font-bold text-sm disabled:opacity-50"
             style={{ backgroundColor: 'var(--primary)' }}
           >
-            {saving ? 'Saving…' : mode === 'create' ? 'Publish' : 'Save Changes'}
+            {uploading ? `Uploading ${uploadPct}%…` : saving ? 'Saving…' : mode === 'create' ? 'Publish' : 'Save Changes'}
           </button>
         </div>
       </div>

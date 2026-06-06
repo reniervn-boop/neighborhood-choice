@@ -86,6 +86,12 @@ export interface Report {
     timestamp: number;
     referenceNumber: string;
   };
+  // Committee tracking fields (added v2)
+  committeeNote?: string;
+  committeeNoteAt?: number;
+  committeeNoteBy?: string;
+  councilReference?: string;
+  escalatedAt?: number;
 }
 
 export type ReportCategory =

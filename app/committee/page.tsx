@@ -10,10 +10,11 @@ import LoadingScreen from '@/components/LoadingScreen';
 import AnnouncementForm from '@/components/committee/AnnouncementForm';
 import AlertForm from '@/components/committee/AlertForm';
 import NewsletterManager from '@/components/committee/NewsletterManager';
+import FaultReportsManager from '@/components/committee/FaultReportsManager';
 import { seedNewsletter2026 } from '@/lib/data/seedFunctions';
 import { createNewsletter } from '@/lib/services/newsletterService';
 
-type Tab = 'announcement' | 'alert' | 'agm' | 'finance' | 'newsletter';
+type Tab = 'announcement' | 'alert' | 'agm' | 'finance' | 'newsletter' | 'reports';
 
 export default function CommitteePage() {
   const router = useRouter();
@@ -56,10 +57,11 @@ export default function CommitteePage() {
 
   const TABS: { id: Tab; label: string; icon: string }[] = [
     { id: 'announcement', label: 'Announcement', icon: '📢' },
-    { id: 'alert', label: 'Alert', icon: '🚨' },
-    { id: 'newsletter', label: 'Newsletter', icon: '📰' },
-    { id: 'agm', label: 'AGM', icon: '🗳' },
-    { id: 'finance', label: 'Finance', icon: '💰' },
+    { id: 'alert',        label: 'Alert',        icon: '🚨' },
+    { id: 'newsletter',   label: 'Newsletter',   icon: '📰' },
+    { id: 'reports',      label: 'Faults',       icon: '🛠️' },
+    { id: 'agm',          label: 'AGM',          icon: '🗳' },
+    { id: 'finance',      label: 'Finance',      icon: '💰' },
   ];
 
   return (
@@ -195,6 +197,11 @@ export default function CommitteePage() {
         {/* Newsletter tab */}
         {tab === 'newsletter' && (
           <NewsletterManager userId={user.uid} userName={user.name} />
+        )}
+
+        {/* Fault Reports tab */}
+        {tab === 'reports' && (
+          <FaultReportsManager userId={user.uid} userName={user.name} />
         )}
 
         {/* AGM tab */}
