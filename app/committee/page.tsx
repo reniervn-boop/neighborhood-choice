@@ -29,12 +29,26 @@ export default function CommitteePage() {
   const handleSeedNewsletter = async () => {
     setSeeding(true);
     const result = await seedNewsletter2026();
-    setSeeding(false);
     if ('error' in result) {
+      setSeeding(false);
       toast(result.error);
-    } else {
-      toast.success('2026 Committee Newsletter published to noticeboard!');
+      return;
     }
+    // Also publish to the newsletters archive so it appears on the Newsletters page
+    try {
+      await createNewsletter({
+        title: 'Introducing Your 2026 Committee',
+        edition: 'May 2026',
+        description: 'Meet the SX7RA Operations Committee for the 2026 term — portfolios, contacts and priorities.',
+        publishedAt: new Date('2026-05-01T09:00:00+02:00').getTime(),
+        authorId: user?.uid ?? 'system',
+        authorName: 'The SX7RA Committee',
+      });
+    } catch (e) {
+      console.warn('Newsletter archive entry failed:', e);
+    }
+    setSeeding(false);
+    toast.success('2026 Committee Newsletter published to noticeboard and newsletters!');
   };
 
   if (loading) return <LoadingScreen message="Loading committee panel…" />;
@@ -136,7 +150,7 @@ export default function CommitteePage() {
                   {seeding ? 'Publishing…' : 'Publish 2026 Committee Newsletter'}
                 </p>
                 <p className="text-xs text-gray-400 leading-snug">
-                  Adds the "Introducing Your 2026 Committee" announcement to the noticeboard (one-time)
+                  Publishes to the Noticeboard AND the Newsletters archive (one-time)
                 </p>
               </div>
               <span className="text-gray-400 flex-shrink-0">→</span>
