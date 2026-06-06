@@ -117,16 +117,21 @@ export default function NewsletterManager({ userId, userName }: Props) {
     try {
       let pdfUrl: string | undefined      = undefined;
       let externalUrl: string | undefined = undefined;
+      // (externalUrl assigned in the URL-only branch below)
+
+      // Common text fields (undefined = omit from Firestore)
+      const titleVal       = form.title.trim();
+      const editionVal     = form.edition.trim()     || undefined;
+      const descriptionVal = form.description.trim() || undefined;
 
       if (pdfFile) {
         // ── Upload new PDF ──
         setUploading(true);
         setUploadPct(0);
 
-        // For new newsletters we need the ID before creating the doc
         const newsletterId = editing?.id ?? newNewsletterRef();
 
-        // Delete old PDF if replacing
+        // Delete old Storage file if replacing
         if (editing?.pdfUrl) {
           await deleteNewsletterPdf(editing.pdfUrl).catch(() => {/* ignore */});
         }
@@ -136,22 +141,29 @@ export default function NewsletterManager({ userId, userName }: Props) {
         });
         setUploading(false);
 
-        const payload: Omit<Newsletter, 'id'> = {
-          title:       form.title.trim(),
-          edition:     form.edition.trim()      || undefined,
-          description: form.description.trim()  || undefined,
-          pdfUrl,
-          externalUrl: undefined,
-          publishedAt: editing?.publishedAt      ?? Date.now(),
-          authorId:    editing?.authorId         ?? userId,
-          authorName:  editing?.authorName       ?? userName,
-        };
-
         if (mode === 'create') {
-          await createNewsletterWithId(newsletterId, payload);
+          await createNewsletterWithId(newsletterId, {
+            title:       titleVal,
+            edition:     editionVal,
+            description: descriptionVal,
+            pdfUrl,
+            publishedAt: Date.now(),
+            authorId:    userId,
+            authorName:  userName,
+          });
           toast.success('Newsletter published!');
         } else if (editing) {
-          await updateNewsletter(editing.id, payload);
+          // Pass null for externalUrl → service converts to deleteField()
+          await updateNewsletter(editing.id, {
+            title:       titleVal,
+            edition:     editionVal,
+            description: descriptionVal,
+            pdfUrl,
+            externalUrl: null,          // clear any old link
+            publishedAt: editing.publishedAt,
+            authorId:    editing.authorId,
+            authorName:  editing.authorName,
+          });
           toast.success('Newsletter updated!');
         }
 
@@ -164,22 +176,30 @@ export default function NewsletterManager({ userId, userName }: Props) {
         pdfUrl      = isPdf  ? rawUrl || undefined : undefined;
         externalUrl = !isPdf ? rawUrl || undefined : undefined;
 
-        const payload: Omit<Newsletter, 'id'> = {
-          title:       form.title.trim(),
-          edition:     form.edition.trim()      || undefined,
-          description: form.description.trim()  || undefined,
-          pdfUrl,
-          externalUrl,
-          publishedAt: editing?.publishedAt      ?? Date.now(),
-          authorId:    editing?.authorId         ?? userId,
-          authorName:  editing?.authorName       ?? userName,
-        };
-
         if (mode === 'create') {
-          await createNewsletterWithId(newNewsletterRef(), payload);
+          await createNewsletterWithId(newNewsletterRef(), {
+            title:       titleVal,
+            edition:     editionVal,
+            description: descriptionVal,
+            pdfUrl,
+            externalUrl,
+            publishedAt: Date.now(),
+            authorId:    userId,
+            authorName:  userName,
+          });
           toast.success('Newsletter published!');
         } else if (editing) {
-          await updateNewsletter(editing.id, payload);
+          // Pass null for the field that's no longer being used
+          await updateNewsletter(editing.id, {
+            title:       titleVal,
+            edition:     editionVal,
+            description: descriptionVal,
+            pdfUrl:      pdfUrl ?? null,         // null clears old PDF
+            externalUrl: externalUrl ?? null,     // null clears old link
+            publishedAt: editing.publishedAt,
+            authorId:    editing.authorId,
+            authorName:  editing.authorName,
+          });
           toast.success('Newsletter updated!');
         }
       }

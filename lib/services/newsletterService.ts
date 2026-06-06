@@ -7,6 +7,7 @@ import {
   doc,
   updateDoc,
   setDoc,
+  deleteField,
   orderBy,
   query,
   limit,
@@ -49,7 +50,11 @@ export async function createNewsletterWithId(
   id: string,
   data: Omit<Newsletter, 'id'>
 ): Promise<void> {
-  await setDoc(doc(db, 'newsletters', id), data);
+  // Strip undefined values — Firestore rejects them in setDoc too
+  const payload = Object.fromEntries(
+    Object.entries(data).filter(([, v]) => v !== undefined)
+  );
+  await setDoc(doc(db, 'newsletters', id), payload);
 }
 
 /** Generate a new Firestore document ID without creating the document. */
@@ -57,11 +62,33 @@ export function newNewsletterRef(): string {
   return doc(collection(db, 'newsletters')).id;
 }
 
+/**
+ * Update a newsletter document.
+ * - `undefined` values are stripped (Firestore rejects them in updateDoc)
+ * - Pass `null` for any optional field to explicitly delete it from Firestore
+ */
+type NewsletterUpdate = Omit<
+  Partial<Omit<Newsletter, 'id'>>,
+  'pdfUrl' | 'externalUrl' | 'edition' | 'description' | 'thumbnailUrl'
+> & {
+  pdfUrl?: string | null;
+  externalUrl?: string | null;
+  edition?: string | null;
+  description?: string | null;
+  thumbnailUrl?: string | null;
+};
+
 export async function updateNewsletter(
   id: string,
-  data: Partial<Omit<Newsletter, 'id'>>
+  data: NewsletterUpdate
 ): Promise<void> {
-  await updateDoc(doc(db, 'newsletters', id), data);
+  const payload: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(data)) {
+    if (v === undefined) continue;          // skip undefined
+    if (v === null) payload[k] = deleteField(); // null → deleteField()
+    else payload[k] = v;
+  }
+  await updateDoc(doc(db, 'newsletters', id), payload);
 }
 
 export async function deleteNewsletter(id: string): Promise<void> {
