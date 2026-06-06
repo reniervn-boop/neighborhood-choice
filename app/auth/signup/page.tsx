@@ -66,6 +66,9 @@ export default function SignupPage() {
           weeklyDigest: true,
         },
         role: 'resident',
+        membershipStatus: 'non-paying',
+        canVote: false,
+        canStandForOffice: false,
       });
 
       toast.success('Welcome to the community!');
