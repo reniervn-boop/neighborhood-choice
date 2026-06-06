@@ -1,14 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import {
   getNewsletters,
   createNewsletter,
   updateNewsletter,
   deleteNewsletter,
-  uploadNewsletterPdf,
-  deleteNewsletterPdf,
 } from '@/lib/services/newsletterService';
 import { Newsletter } from '@/lib/types';
 
@@ -23,7 +21,6 @@ const EMPTY_FORM = {
   title: '',
   edition: '',
   description: '',
-  sourceType: 'url' as 'pdf' | 'url',
   url: '',
 };
 
@@ -35,13 +32,9 @@ export default function NewsletterManager({ userId, userName }: Props) {
 
   // Form state
   const [form, setForm] = useState({ ...EMPTY_FORM });
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
-  const [uploadPct, setUploadPct] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Newsletter | null>(null);
   const [deleting, setDeleting] = useState(false);
-
-  const fileRef = useRef<HTMLInputElement>(null);
 
   // Load list
   const load = async () => {
@@ -62,8 +55,6 @@ export default function NewsletterManager({ userId, userName }: Props) {
   const openCreate = () => {
     setEditing(null);
     setForm({ ...EMPTY_FORM });
-    setPdfFile(null);
-    setUploadPct(null);
     setMode('create');
   };
 
@@ -74,54 +65,31 @@ export default function NewsletterManager({ userId, userName }: Props) {
       title: nl.title,
       edition: nl.edition ?? '',
       description: nl.description ?? '',
-      sourceType: nl.pdfUrl ? 'pdf' : 'url',
       url: nl.pdfUrl ?? nl.externalUrl ?? '',
     });
-    setPdfFile(null);
-    setUploadPct(null);
     setMode('edit');
   };
 
   const cancel = () => {
     setMode('list');
     setEditing(null);
-    setPdfFile(null);
-    setUploadPct(null);
   };
 
   // Save (create or update)
   const handleSave = async () => {
     if (!form.title.trim()) { toast.error('Title is required'); return; }
-    if (form.sourceType === 'url' && !form.url.trim() && mode === 'create') {
-      toast.error('Please add a URL or switch to PDF upload'); return;
-    }
-    if (form.sourceType === 'pdf' && !pdfFile && mode === 'create') {
-      toast.error('Please select a PDF file'); return;
-    }
 
     setSaving(true);
     try {
-      let pdfUrl: string | undefined = editing?.pdfUrl;
-      let externalUrl: string | undefined = editing?.externalUrl;
-
-      if (form.sourceType === 'pdf' && pdfFile) {
-        // Need an ID to store the file under — use a temp one for new, existing ID for edits
-        const tempId = editing?.id ?? `temp_${Date.now()}`;
-        setUploadPct(0);
-        pdfUrl = await uploadNewsletterPdf(pdfFile, tempId, setUploadPct);
-        externalUrl = undefined;
-        setUploadPct(null);
-      } else if (form.sourceType === 'url') {
-        externalUrl = form.url.trim() || undefined;
-        pdfUrl = undefined;
-      }
+      const rawUrl = form.url.trim();
+      const isPdf = rawUrl.toLowerCase().includes('.pdf') || rawUrl.includes('drive.google') && rawUrl.includes('export=download');
 
       const payload: Omit<Newsletter, 'id'> = {
         title: form.title.trim(),
         edition: form.edition.trim() || undefined,
         description: form.description.trim() || undefined,
-        pdfUrl,
-        externalUrl,
+        pdfUrl: isPdf ? rawUrl || undefined : undefined,
+        externalUrl: !isPdf ? rawUrl || undefined : undefined,
         publishedAt: editing?.publishedAt ?? Date.now(),
         authorId: editing?.authorId ?? userId,
         authorName: editing?.authorName ?? userName,
@@ -140,7 +108,6 @@ export default function NewsletterManager({ userId, userName }: Props) {
     } catch (err) {
       console.error(err);
       toast.error('Save failed — please try again');
-      setUploadPct(null);
     } finally {
       setSaving(false);
     }
@@ -151,10 +118,6 @@ export default function NewsletterManager({ userId, userName }: Props) {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      // Remove PDF from Storage if it was uploaded there
-      if (deleteTarget.pdfUrl) {
-        await deleteNewsletterPdf(deleteTarget.pdfUrl);
-      }
       await deleteNewsletter(deleteTarget.id);
       toast.success('Deleted');
       setNewsletters((prev) => prev.filter((n) => n.id !== deleteTarget.id));
@@ -348,138 +311,31 @@ export default function NewsletterManager({ userId, userName }: Props) {
           />
         </div>
 
-        {/* Source type toggle */}
+        {/* PDF / Link URL */}
         <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Content</label>
-          <div
-            className="flex rounded-xl p-1 gap-1 mb-3"
-            style={{ backgroundColor: '#f3f4f6' }}
-          >
-            <button
-              type="button"
-              onClick={() => setForm((f) => ({ ...f, sourceType: 'pdf' }))}
-              className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-colors"
-              style={{
-                backgroundColor: form.sourceType === 'pdf' ? 'white' : 'transparent',
-                color: form.sourceType === 'pdf' ? 'var(--brand-black)' : '#6b7280',
-                boxShadow: form.sourceType === 'pdf' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-              }}
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-              </svg>
-              Upload PDF
-            </button>
-            <button
-              type="button"
-              onClick={() => setForm((f) => ({ ...f, sourceType: 'url' }))}
-              className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-colors"
-              style={{
-                backgroundColor: form.sourceType === 'url' ? 'white' : 'transparent',
-                color: form.sourceType === 'url' ? 'var(--brand-black)' : '#6b7280',
-                boxShadow: form.sourceType === 'url' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-              }}
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-              </svg>
-              External URL
-            </button>
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+            PDF or Link URL
+          </label>
+          <input
+            type="url"
+            value={form.url}
+            onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
+            placeholder="https://drive.google.com/… or any link"
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none text-sm"
+          />
+
+          {/* Google Drive how-to */}
+          <div className="mt-2 p-3 rounded-xl bg-blue-50 border border-blue-100">
+            <p className="text-xs font-bold text-blue-700 mb-1.5">
+              📎 How to share a PDF via Google Drive
+            </p>
+            <ol className="text-xs text-blue-600 space-y-1 leading-relaxed list-decimal list-inside">
+              <li>Upload your PDF to Google Drive</li>
+              <li>Right-click the file → <strong>Share</strong></li>
+              <li>Set access to <strong>Anyone with the link</strong></li>
+              <li>Click <strong>Copy link</strong> and paste it above</li>
+            </ol>
           </div>
-
-          {/* PDF upload */}
-          {form.sourceType === 'pdf' && (
-            <div>
-              {/* Current PDF when editing */}
-              {editing?.pdfUrl && !pdfFile && (
-                <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-xl mb-2">
-                  <svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <p className="text-xs font-semibold text-green-700 flex-1 truncate">Current PDF attached</p>
-                  <button
-                    type="button"
-                    onClick={() => fileRef.current?.click()}
-                    className="text-xs font-bold"
-                    style={{ color: 'var(--primary)' }}
-                  >
-                    Replace
-                  </button>
-                </div>
-              )}
-
-              {/* File picker */}
-              <button
-                type="button"
-                onClick={() => fileRef.current?.click()}
-                className="w-full border-2 border-dashed border-gray-300 rounded-xl py-6 flex flex-col items-center gap-2 text-gray-400 hover:border-gray-400 transition-colors"
-                style={pdfFile ? { borderColor: 'var(--primary)', backgroundColor: 'var(--primary-bg)' } : {}}
-              >
-                <svg
-                  className="w-8 h-8"
-                  style={{ color: pdfFile ? 'var(--primary)' : '#9ca3af' }}
-                  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                {pdfFile ? (
-                  <div className="text-center">
-                    <p className="text-sm font-bold" style={{ color: 'var(--primary)' }}>{pdfFile.name}</p>
-                    <p className="text-xs text-gray-400">{(pdfFile.size / 1024 / 1024).toFixed(1)} MB · tap to change</p>
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <p className="text-sm font-semibold text-gray-600">Tap to select PDF</p>
-                    <p className="text-xs">Max 20 MB</p>
-                  </div>
-                )}
-              </button>
-              <input
-                ref={fileRef}
-                type="file"
-                accept=".pdf,application/pdf"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  if (file.size > 20 * 1024 * 1024) {
-                    toast.error('File too large — max 20 MB');
-                    return;
-                  }
-                  setPdfFile(file);
-                  // Reset input so same file can be re-selected
-                  e.target.value = '';
-                }}
-              />
-
-              {/* Upload progress */}
-              {uploadPct !== null && (
-                <div className="mt-3">
-                  <div className="flex justify-between text-xs text-gray-500 mb-1">
-                    <span>Uploading…</span>
-                    <span>{uploadPct}%</span>
-                  </div>
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{ width: `${uploadPct}%`, backgroundColor: 'var(--primary)' }}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* External URL */}
-          {form.sourceType === 'url' && (
-            <input
-              type="url"
-              value={form.url}
-              onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
-              placeholder="https://… (webpage or PDF link)"
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none text-sm"
-            />
-          )}
         </div>
 
         {/* Actions */}
@@ -494,17 +350,11 @@ export default function NewsletterManager({ userId, userName }: Props) {
           <button
             type="button"
             onClick={handleSave}
-            disabled={saving || uploadPct !== null}
+            disabled={saving}
             className="flex-1 py-3.5 rounded-xl text-white font-bold text-sm disabled:opacity-50"
             style={{ backgroundColor: 'var(--primary)' }}
           >
-            {saving
-              ? uploadPct !== null
-                ? `Uploading ${uploadPct}%…`
-                : 'Saving…'
-              : mode === 'create'
-              ? 'Publish'
-              : 'Save Changes'}
+            {saving ? 'Saving…' : mode === 'create' ? 'Publish' : 'Save Changes'}
           </button>
         </div>
       </div>
