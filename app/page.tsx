@@ -132,6 +132,26 @@ export default function Home() {
       {alerts.length > 0 && <AlertsTicker alerts={alerts} />}
 
       <main className="max-w-lg mx-auto px-4 py-5">
+        {/* Emergency quick-dial */}
+        <Link
+          href="/contacts"
+          className="col-span-2 flex items-center gap-3 rounded-2xl px-4 py-3 mb-4 transition-transform active:scale-[0.98]"
+          style={{ backgroundColor: '#CC1212' }}
+        >
+          <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 5.25v1.5z" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <p className="font-extrabold text-white text-sm">Emergency Contacts</p>
+            <p className="text-white/70 text-xs">SAPS · EMS · City Power · Water</p>
+          </div>
+          <svg className="w-5 h-5 text-white/60 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </Link>
+
         {/* Quick actions */}
         <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
           Quick Actions
@@ -157,6 +177,10 @@ export default function Home() {
 
           {/* Noticeboard */}
           <QuickCard href="/noticeboard" emoji="📢" label="Noticeboard" sub="News &amp; alerts" />
+          {/* Contacts */}
+          <QuickCard href="/contacts" emoji="📞" label="Contacts" sub="Committee &amp; emergency" />
+          {/* Newsletters */}
+          <QuickCard href="/newsletters" emoji="📰" label="Newsletters" sub="Committee updates" />
           {/* AGM */}
           <QuickCard href="/agm" emoji="🗳" label="AGM / Voting" sub="Governance" />
           {/* Finance */}

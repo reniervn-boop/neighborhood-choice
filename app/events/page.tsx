@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/useAuth';
 import Link from 'next/link';
+import AppHeader from '@/components/AppHeader';
 import LoadingScreen from '@/components/LoadingScreen';
 
 const EVENTS = [
@@ -31,18 +32,7 @@ export default function EventsPage() {
 
   return (
     <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--background)' }}>
-      {/* Header */}
-      <div
-        className="sticky top-0 z-10 px-4 py-3 flex items-center justify-between"
-        style={{ backgroundColor: 'var(--brand-black)' }}
-      >
-        <div>
-          <p className="sx7ra-logo font-display text-xl text-white leading-none">
-            SX<span style={{ color: 'var(--primary)' }}>7</span>RA
-          </p>
-          <p className="text-white/50 text-xs font-semibold uppercase tracking-widest">Events</p>
-        </div>
-      </div>
+      <AppHeader title="Events" showBrand />
 
       <div className="max-w-lg mx-auto px-4 py-5">
         <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">

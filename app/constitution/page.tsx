@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useAuth } from '@/lib/hooks/useAuth';
+import AppHeader from '@/components/AppHeader';
 import LoadingScreen from '@/components/LoadingScreen';
 
 export default function ConstitutionPage() {
@@ -17,20 +17,7 @@ export default function ConstitutionPage() {
 
   return (
     <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--background)' }}>
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-4">
-        <div className="flex items-center gap-3">
-          <Link href="/" className="text-gray-400">
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </Link>
-          <div>
-            <h1 className="font-extrabold text-gray-900">Constitution</h1>
-            <p className="text-xs text-gray-400">SX7RA Governing Document v2.1</p>
-          </div>
-        </div>
-      </div>
+      <AppHeader title="Constitution" showBack backHref="/" />
 
       <div className="px-4 py-6 max-w-2xl">
         {/* Info banner */}

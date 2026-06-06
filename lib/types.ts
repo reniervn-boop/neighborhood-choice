@@ -1,3 +1,18 @@
+// ─── Newsletters ──────────────────────────────────────────────────────────────
+
+export interface Newsletter {
+  id: string;
+  title: string;
+  edition?: string; // e.g. "May 2026"
+  description?: string;
+  publishedAt: number;
+  pdfUrl?: string;
+  externalUrl?: string;
+  thumbnailUrl?: string;
+  authorName: string;
+  authorId: string;
+}
+
 // ─── User & Auth ──────────────────────────────────────────────────────────────
 
 export type UserRole = 'resident' | 'committee' | 'super_admin' | 'admin';
@@ -138,21 +153,6 @@ export interface MunicipalitySubmission {
   referenceNumber?: string;
   status: 'sent' | 'pending_reference' | 'acknowledged';
   resendEmailId?: string;
-}
-
-export interface Newsletter {
-  id: string;
-  subject: string;
-  body: string;
-  topReports: string[];
-  leaderboard: { userId: string; username: string; points: number }[];
-  stats: {
-    totalReports: number;
-    activeUsers: number;
-    topCategories: Record<ReportCategory, number>;
-  };
-  sentAt?: number;
-  sentTo?: number;
 }
 
 // ─── Noticeboard ──────────────────────────────────────────────────────────────

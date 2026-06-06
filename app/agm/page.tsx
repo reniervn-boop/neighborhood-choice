@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/hooks/useAuth';
 import { useAGM } from '@/lib/hooks/useAGM';
 import AGMStatusBanner from '@/components/agm/AGMStatusBanner';
 import NominationCard from '@/components/agm/NominationCard';
+import AppHeader from '@/components/AppHeader';
 import LoadingScreen from '@/components/LoadingScreen';
 
 export default function AGMPage() {
@@ -31,11 +32,7 @@ export default function AGMPage() {
 
   return (
     <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--background)' }}>
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3">
-        <h1 className="font-extrabold text-gray-900 text-lg">AGM / Governance</h1>
-        <p className="text-xs text-gray-400">Annual General Meeting — Ward 101</p>
-      </div>
+      <AppHeader title="AGM / Governance" showBack backHref="/" />
 
       <div className="px-4 py-4 space-y-4">
         {!agm && (

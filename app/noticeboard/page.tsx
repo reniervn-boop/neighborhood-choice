@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useNoticeboard } from '@/lib/hooks/useNoticeboard';
+import AppHeader from '@/components/AppHeader';
 import AlertsTicker from '@/components/noticeboard/AlertsTicker';
 import AnnouncementCard from '@/components/noticeboard/AnnouncementCard';
 import LoadingScreen from '@/components/LoadingScreen';
@@ -27,25 +28,19 @@ export default function NoticeboardPage() {
 
   return (
     <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--background)' }}>
-      {/* Header */}
-      <div
-        className="sticky top-0 z-10 px-4 py-3 flex items-center justify-between"
-        style={{ backgroundColor: 'var(--brand-black)' }}
-      >
-        <div>
-          <p className="sx7ra-logo font-display text-xl text-white leading-none">
-            SX<span style={{ color: 'var(--primary)' }}>7</span>RA
-          </p>
-          <p className="text-white/50 text-xs font-semibold uppercase tracking-widest">Noticeboard</p>
-        </div>
-        <button
-          onClick={refresh}
-          className="w-8 h-8 rounded-full flex items-center justify-center text-sm text-white/60 hover:text-white"
-          style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-        >
-          🔄
-        </button>
-      </div>
+      <AppHeader
+        title="Noticeboard"
+        showBrand
+        rightElement={
+          <button
+            onClick={refresh}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-sm text-white/60 hover:text-white"
+            style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+          >
+            🔄
+          </button>
+        }
+      />
 
       {/* Active Alerts Ticker */}
       {alerts.length > 0 && <AlertsTicker alerts={alerts} />}

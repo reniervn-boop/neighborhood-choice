@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '@/lib/hooks/useAuth';
+import AppHeader from '@/components/AppHeader';
 import LoadingScreen from '@/components/LoadingScreen';
 import AnnouncementForm from '@/components/committee/AnnouncementForm';
 import AlertForm from '@/components/committee/AlertForm';
 import { seedNewsletter2026 } from '@/lib/data/seedFunctions';
+import { createNewsletter } from '@/lib/services/newsletterService';
 
-type Tab = 'announcement' | 'alert' | 'agm' | 'finance';
+type Tab = 'announcement' | 'alert' | 'agm' | 'finance' | 'newsletter';
 
 export default function CommitteePage() {
   const router = useRouter();
@@ -18,6 +20,11 @@ export default function CommitteePage() {
   const [tab, setTab] = useState<Tab>('announcement');
   const [published, setPublished] = useState(false);
   const [seeding, setSeeding] = useState(false);
+  const [nlTitle, setNlTitle] = useState('');
+  const [nlEdition, setNlEdition] = useState('');
+  const [nlDescription, setNlDescription] = useState('');
+  const [nlUrl, setNlUrl] = useState('');
+  const [nlSaving, setNlSaving] = useState(false);
 
   const handleSeedNewsletter = async () => {
     setSeeding(true);
@@ -36,32 +43,53 @@ export default function CommitteePage() {
     return null;
   }
 
+  const handlePublishNewsletter = async () => {
+    if (!nlTitle.trim() || !nlUrl.trim()) return;
+    setNlSaving(true);
+    try {
+      await createNewsletter({
+        title: nlTitle.trim(),
+        edition: nlEdition.trim() || undefined,
+        description: nlDescription.trim() || undefined,
+        pdfUrl: nlUrl.trim().toLowerCase().endsWith('.pdf') ? nlUrl.trim() : undefined,
+        externalUrl: !nlUrl.trim().toLowerCase().endsWith('.pdf') ? nlUrl.trim() : undefined,
+        publishedAt: Date.now(),
+        authorId: user!.uid,
+        authorName: user!.name,
+      });
+      toast.success('Newsletter published!');
+      setNlTitle(''); setNlEdition(''); setNlDescription(''); setNlUrl('');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to publish newsletter.');
+    } finally {
+      setNlSaving(false);
+    }
+  };
+
   const TABS: { id: Tab; label: string; icon: string }[] = [
     { id: 'announcement', label: 'Announcement', icon: '📢' },
     { id: 'alert', label: 'Alert', icon: '🚨' },
+    { id: 'newsletter', label: 'Newsletter', icon: '📰' },
     { id: 'agm', label: 'AGM', icon: '🗳' },
     { id: 'finance', label: 'Finance', icon: '💰' },
   ];
 
   return (
     <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--background)' }}>
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3">
-        <div className="flex items-center gap-2">
-          <div
-            className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold"
-            style={{ backgroundColor: 'var(--primary)' }}
+      <AppHeader
+        title="Committee Panel"
+        showBack
+        backHref="/"
+        rightElement={
+          <span
+            className="text-xs font-bold px-2 py-1 rounded-full"
+            style={{ backgroundColor: 'rgba(255,255,255,0.15)', color: 'white' }}
           >
-            {isSuperAdmin ? '★' : '◆'}
-          </div>
-          <div>
-            <h1 className="font-extrabold text-gray-900">Committee Panel</h1>
-            <p className="text-xs text-gray-400">
-              {isSuperAdmin ? 'Super Admin' : 'Committee Member'} · {user.name}
-            </p>
-          </div>
-        </div>
-      </div>
+            {isSuperAdmin ? 'Super Admin' : 'Committee'}
+          </span>
+        }
+      />
 
       {/* Tab bar */}
       <div className="bg-white border-b border-gray-100 px-4">
@@ -180,6 +208,78 @@ export default function CommitteePage() {
               />
             )}
           </>
+        )}
+
+        {/* Newsletter tab */}
+        {tab === 'newsletter' && (
+          <div className="space-y-4">
+            <h2 className="font-extrabold text-gray-900 mb-1">Publish Newsletter</h2>
+            <p className="text-xs text-gray-400 mb-4">
+              Add a newsletter edition for residents to view in the Newsletters section.
+            </p>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Title *</label>
+              <input
+                type="text"
+                value={nlTitle}
+                onChange={(e) => setNlTitle(e.target.value)}
+                placeholder="e.g. May 2026 Committee Update"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Edition</label>
+              <input
+                type="text"
+                value={nlEdition}
+                onChange={(e) => setNlEdition(e.target.value)}
+                placeholder="e.g. May 2026 (optional)"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Short Description</label>
+              <input
+                type="text"
+                value={nlDescription}
+                onChange={(e) => setNlDescription(e.target.value)}
+                placeholder="Brief summary (optional)"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">PDF / Link URL *</label>
+              <input
+                type="url"
+                value={nlUrl}
+                onChange={(e) => setNlUrl(e.target.value)}
+                placeholder="https://... (PDF or webpage)"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none text-sm"
+              />
+              <p className="text-xs text-gray-400 mt-1">Link to a PDF file or web page.</p>
+            </div>
+
+            <button
+              onClick={handlePublishNewsletter}
+              disabled={nlSaving || !nlTitle.trim() || !nlUrl.trim()}
+              className="w-full text-white font-bold py-4 rounded-xl text-sm disabled:opacity-50"
+              style={{ backgroundColor: 'var(--primary)' }}
+            >
+              {nlSaving ? 'Publishing…' : 'Publish Newsletter'}
+            </button>
+
+            <Link
+              href="/newsletters"
+              className="block text-center text-sm font-semibold mt-2"
+              style={{ color: 'var(--primary)' }}
+            >
+              View all newsletters →
+            </Link>
+          </div>
         )}
 
         {/* AGM tab */}

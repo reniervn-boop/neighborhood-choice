@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/hooks/useAuth';
 import { useFinance } from '@/lib/hooks/useFinance';
 import ProjectCard from '@/components/finance/ProjectCard';
 import PaymentMethodSheet from '@/components/finance/PaymentMethodSheet';
+import AppHeader from '@/components/AppHeader';
 import LoadingScreen from '@/components/LoadingScreen';
 import { CommunityProject } from '@/lib/types';
 
@@ -23,16 +24,20 @@ export default function FinancePage() {
 
   return (
     <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--background)' }}>
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
-        <div>
-          <h1 className="font-extrabold text-gray-900 text-lg">Community Finance</h1>
-          <p className="text-xs text-gray-400">Support our neighbourhood projects</p>
-        </div>
-        <button onClick={refresh} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm">
-          🔄
-        </button>
-      </div>
+      <AppHeader
+        title="Community Finance"
+        showBack
+        backHref="/"
+        rightElement={
+          <button
+            onClick={refresh}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-sm text-white/60 hover:text-white"
+            style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+          >
+            🔄
+          </button>
+        }
+      />
 
       <div className="px-4 py-4 space-y-4">
         {loading && <div className="text-center py-12 text-gray-400 text-sm">Loading…</div>}
