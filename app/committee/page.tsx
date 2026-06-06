@@ -9,6 +9,7 @@ import AppHeader from '@/components/AppHeader';
 import LoadingScreen from '@/components/LoadingScreen';
 import AnnouncementForm from '@/components/committee/AnnouncementForm';
 import AlertForm from '@/components/committee/AlertForm';
+import NewsletterManager from '@/components/committee/NewsletterManager';
 import { seedNewsletter2026 } from '@/lib/data/seedFunctions';
 import { createNewsletter } from '@/lib/services/newsletterService';
 
@@ -20,11 +21,6 @@ export default function CommitteePage() {
   const [tab, setTab] = useState<Tab>('announcement');
   const [published, setPublished] = useState(false);
   const [seeding, setSeeding] = useState(false);
-  const [nlTitle, setNlTitle] = useState('');
-  const [nlEdition, setNlEdition] = useState('');
-  const [nlDescription, setNlDescription] = useState('');
-  const [nlUrl, setNlUrl] = useState('');
-  const [nlSaving, setNlSaving] = useState(false);
 
   const handleSeedNewsletter = async () => {
     setSeeding(true);
@@ -57,29 +53,6 @@ export default function CommitteePage() {
     return null;
   }
 
-  const handlePublishNewsletter = async () => {
-    if (!nlTitle.trim() || !nlUrl.trim()) return;
-    setNlSaving(true);
-    try {
-      await createNewsletter({
-        title: nlTitle.trim(),
-        edition: nlEdition.trim() || undefined,
-        description: nlDescription.trim() || undefined,
-        pdfUrl: nlUrl.trim().toLowerCase().endsWith('.pdf') ? nlUrl.trim() : undefined,
-        externalUrl: !nlUrl.trim().toLowerCase().endsWith('.pdf') ? nlUrl.trim() : undefined,
-        publishedAt: Date.now(),
-        authorId: user!.uid,
-        authorName: user!.name,
-      });
-      toast.success('Newsletter published!');
-      setNlTitle(''); setNlEdition(''); setNlDescription(''); setNlUrl('');
-    } catch (err) {
-      console.error(err);
-      toast.error('Failed to publish newsletter.');
-    } finally {
-      setNlSaving(false);
-    }
-  };
 
   const TABS: { id: Tab; label: string; icon: string }[] = [
     { id: 'announcement', label: 'Announcement', icon: '📢' },
@@ -221,74 +194,7 @@ export default function CommitteePage() {
 
         {/* Newsletter tab */}
         {tab === 'newsletter' && (
-          <div className="space-y-4">
-            <h2 className="font-extrabold text-gray-900 mb-1">Publish Newsletter</h2>
-            <p className="text-xs text-gray-400 mb-4">
-              Add a newsletter edition for residents to view in the Newsletters section.
-            </p>
-
-            <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Title *</label>
-              <input
-                type="text"
-                value={nlTitle}
-                onChange={(e) => setNlTitle(e.target.value)}
-                placeholder="e.g. May 2026 Committee Update"
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Edition</label>
-              <input
-                type="text"
-                value={nlEdition}
-                onChange={(e) => setNlEdition(e.target.value)}
-                placeholder="e.g. May 2026 (optional)"
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Short Description</label>
-              <input
-                type="text"
-                value={nlDescription}
-                onChange={(e) => setNlDescription(e.target.value)}
-                placeholder="Brief summary (optional)"
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">PDF / Link URL *</label>
-              <input
-                type="url"
-                value={nlUrl}
-                onChange={(e) => setNlUrl(e.target.value)}
-                placeholder="https://... (PDF or webpage)"
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none text-sm"
-              />
-              <p className="text-xs text-gray-400 mt-1">Link to a PDF file or web page.</p>
-            </div>
-
-            <button
-              onClick={handlePublishNewsletter}
-              disabled={nlSaving || !nlTitle.trim() || !nlUrl.trim()}
-              className="w-full text-white font-bold py-4 rounded-xl text-sm disabled:opacity-50"
-              style={{ backgroundColor: 'var(--primary)' }}
-            >
-              {nlSaving ? 'Publishing…' : 'Publish Newsletter'}
-            </button>
-
-            <Link
-              href="/noticeboard?tab=newsletters"
-              className="block text-center text-sm font-semibold mt-2"
-              style={{ color: 'var(--primary)' }}
-            >
-              View all newsletters →
-            </Link>
-          </div>
+          <NewsletterManager userId={user.uid} userName={user.name} />
         )}
 
         {/* AGM tab */}
