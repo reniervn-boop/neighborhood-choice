@@ -53,7 +53,7 @@ export default function ContactsPage() {
           </h2>
           <div
             className="rounded-2xl p-4 mb-3 flex items-center gap-3"
-            style={{ backgroundColor: '#CC1212' }}
+            style={{ backgroundColor: 'var(--primary)' }}
           >
             <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
               <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>

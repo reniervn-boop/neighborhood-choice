@@ -138,7 +138,7 @@ export default function Home() {
         <Link
           href="/contacts"
           className="col-span-2 flex items-center gap-3 rounded-2xl px-4 py-3 mb-4 transition-transform active:scale-[0.98]"
-          style={{ backgroundColor: '#CC1212' }}
+          style={{ backgroundColor: 'var(--primary)' }}
         >
           <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
             <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>

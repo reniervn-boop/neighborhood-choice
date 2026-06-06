@@ -1,33 +1,26 @@
 {
-  "name": "Neighborhood of Choice",
-  "short_name": "NeighChoice",
-  "description": "Civic engagement app for community issue reporting with gamification",
+  "name": "SX7RA — Sundowner Ext. 7",
+  "short_name": "SX7RA",
+  "description": "Sundowner Extension 7 Residents Association — community app for residents",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#3b82f6",
+  "background_color": "#060709",
+  "theme_color": "#060709",
   "scope": "/",
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%233b82f6' width='192' height='192'/><text x='96' y='120' font-size='100' fill='white' text-anchor='middle' font-weight='bold'>NC</text></svg>",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23060709' width='192' height='192'/><text x='96' y='108' font-size='72' fill='white' text-anchor='middle' font-weight='900' font-family='Impact,Arial Black,sans-serif' letter-spacing='2'>SX</text><text x='128' y='108' font-size='72' fill='%23D52027' text-anchor='middle' font-weight='900' font-family='Impact,Arial Black,sans-serif'>7</text><text x='160' y='108' font-size='72' fill='white' text-anchor='middle' font-weight='900' font-family='Impact,Arial Black,sans-serif'>RA</text></svg>",
       "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "any"
     }
   ],
-  "screenshots": [
-    {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%23f3f4f6' width='540' height='720'/><text x='270' y='360' font-size='48' fill='%233b82f6' text-anchor='middle' font-weight='bold'>Neighborhood of Choice</text></svg>",
-      "sizes": "540x720",
-      "form_factor": "narrow"
-    }
-  ],
-  "categories": ["civic"],
+  "categories": ["lifestyle", "social"],
   "shortcuts": [
     {
       "name": "Report Issue",
       "short_name": "Report",
-      "description": "Quickly report a civic issue",
+      "description": "Report a civic issue in Sundowner Ext. 7",
       "url": "/report",
       "icons": [
         {
@@ -38,13 +31,13 @@
       ]
     },
     {
-      "name": "Leaderboard",
-      "short_name": "Leaderboard",
-      "description": "View community leaderboard",
-      "url": "/leaderboard",
+      "name": "Noticeboard",
+      "short_name": "Board",
+      "description": "View community announcements",
+      "url": "/noticeboard",
       "icons": [
         {
-          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><text x='48' y='60' font-size='60' text-anchor='middle'>🏆</text></svg>",
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><text x='48' y='60' font-size='60' text-anchor='middle'>📢</text></svg>",
           "sizes": "96x96",
           "type": "image/svg+xml"
         }

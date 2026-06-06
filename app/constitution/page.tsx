@@ -70,7 +70,7 @@ export default function ConstitutionPage() {
                   <div className="flex-1 min-w-0">
                     <p
                       className="font-bold text-sm leading-snug"
-                      style={{ color: isOpen ? 'white' : '#111111' }}
+                      style={{ color: isOpen ? 'white' : 'var(--brand-black)' }}
                     >
                       {section.title.replace(/^\d+\.\s*/, '')}
                     </p>

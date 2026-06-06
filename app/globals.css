@@ -1,19 +1,23 @@
 @import "tailwindcss";
 
 /* ─── SX7RA Brand Palette ───────────────────────────────────────────────────── */
+/* Colors extracted directly from the official SX7RA logo SVG:                  */
+/*   Red  → #D52027  (the "7" glyph fill class .fil2)                           */
+/*   Dark red → #B8343A  (shadow/depth class .fil7)                             */
+/*   Near-black → #060709  (skyline silhouette class .fil0)                     */
 :root {
-  --background: #f4f4f4;
-  --foreground: #111111;
+  --background: #F5F5F5;
+  --foreground: #060709;
 
-  /* Primary: SX7RA red (the "7") */
-  --primary: #CC1212;
-  --primary-dark: #A50E0E;
-  --primary-light: #E63329;
-  --primary-bg: #FFF0F0;
+  /* Primary: exact logo red (#D52027 = the "7") */
+  --primary: #D52027;
+  --primary-dark: #B8343A;
+  --primary-light: #E8353C;
+  --primary-bg: #FFF1F1;
 
-  /* Brand black for nav, headers, logo */
-  --brand-black: #111111;
-  --brand-black-soft: #1E1E1E;
+  /* Brand black: exact logo near-black (#060709 = skyline & text) */
+  --brand-black: #060709;
+  --brand-black-soft: #131315;
 
   /* Neutral */
   --border: #E5E7EB;

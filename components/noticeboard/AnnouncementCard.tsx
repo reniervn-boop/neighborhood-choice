@@ -8,7 +8,7 @@ const CATEGORY_COLORS: Record<Announcement['category'], { stripe: string; badge:
   Maintenance: { stripe: '#E65100', badge: '#FFF3E0', text: '#E65100' },
   Event:       { stripe: '#6A1B9A', badge: '#F3E5F5', text: '#6A1B9A' },
   Finance:     { stripe: '#1565C0', badge: '#E3F2FD', text: '#1565C0' },
-  Governance:  { stripe: '#111111', badge: '#F3F3F3', text: '#111111' },
+  Governance:  { stripe: '#060709', badge: '#F3F3F3', text: '#060709' },
 };
 
 interface Props {
@@ -57,7 +57,7 @@ export default function AnnouncementCard({ announcement, onClick }: Props) {
         {/* Title */}
         <h3
           className="font-extrabold text-sm leading-snug mb-1"
-          style={{ color: isGovernance ? 'white' : '#111111' }}
+          style={{ color: isGovernance ? 'white' : 'var(--brand-black)' }}
         >
           {announcement.title}
         </h3>
@@ -71,7 +71,7 @@ export default function AnnouncementCard({ announcement, onClick }: Props) {
               color: 'rgba(255,255,255,0.06)',
             }}
           >
-            SX<span style={{ color: 'rgba(204,18,18,0.15)' }}>7</span>RA
+            SX<span style={{ color: 'rgba(213,32,39,0.15)' }}>7</span>RA
           </p>
         )}
 
