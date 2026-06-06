@@ -78,10 +78,39 @@ export default function SignupPage() {
 
       toast.success('Welcome to the community!');
       router.push('/');
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Signup failed';
+    } catch (error: unknown) {
+      const code = (error as { code?: string }).code;
       console.error('Signup error:', error);
-      toast.error(errorMessage);
+      if (code === 'auth/email-already-in-use') {
+        toast.error(
+          (t) => (
+            <span>
+              An account with this email already exists.{' '}
+              <a
+                href="/auth/login"
+                onClick={() => toast.dismiss(t.id)}
+                style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'underline' }}
+              >
+                Sign in
+              </a>{' '}
+              or{' '}
+              <a
+                href="/auth/forgot-password"
+                onClick={() => toast.dismiss(t.id)}
+                style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'underline' }}
+              >
+                reset your password
+              </a>
+              .
+            </span>
+          ),
+          { duration: 8000 }
+        );
+      } else if (code === 'auth/weak-password') {
+        toast.error('Password must be at least 6 characters.');
+      } else {
+        toast.error('Signup failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
