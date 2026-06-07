@@ -43,18 +43,21 @@ export default function AppHeader({
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-          ) : (
+          ) : !showBrand ? (
+            // Only show the small icon when not in brand mode (brand mode renders its own logo)
             <Link href="/" className="flex-shrink-0">
               <div className="bg-white rounded-lg p-0.5 w-8 h-8 flex items-center justify-center overflow-hidden">
                 <img src="/sx7ra-logo.svg" alt="SX7RA" className="w-full h-full object-contain" draggable={false} />
               </div>
             </Link>
-          )}
+          ) : null}
 
           {showBrand ? (
-            <div className="bg-white rounded-xl px-2 py-1">
-              <img src="/sx7ra-logo.svg" alt="SX7RA" className="h-7 w-auto" draggable={false} />
-            </div>
+            <Link href="/" className="flex-shrink-0">
+              <div className="bg-white rounded-xl px-2 py-1">
+                <img src="/sx7ra-logo.svg" alt="SX7RA" className="h-7 w-auto" draggable={false} />
+              </div>
+            </Link>
           ) : (
             <h1 className="text-base font-bold truncate">{title}</h1>
           )}

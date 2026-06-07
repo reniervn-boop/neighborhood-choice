@@ -74,8 +74,23 @@ export default function BottomNav() {
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-50 bottom-nav shadow-2xl"
-      style={{ backgroundColor: 'var(--brand-black)', borderTop: '1px solid #2a2a2a' }}
+      style={{ backgroundColor: 'var(--brand-black)' }}
     >
+      {/* Joburg skyline silhouette */}
+      <div className="w-full overflow-hidden select-none pointer-events-none" style={{ height: 28, borderTop: '1px solid #2a2a2a' }}>
+        <svg
+          viewBox="0 0 375 44"
+          preserveAspectRatio="xMidYMax meet"
+          aria-hidden="true"
+          className="w-full h-full"
+        >
+          <path
+            fill="rgba(255,255,255,0.09)"
+            d="M0,44 L0,30 L5,30 L5,32 L8,32 L8,26 L12,26 L12,22 L14,22 L14,18 L16,18 L16,16 L18,16 L18,14 L20,14 L20,16 L22,16 L22,22 L24,22 L24,30 L28,30 L28,24 L32,24 L32,20 L34,20 L34,24 L36,24 L36,30 L40,30 L40,22 L44,22 L44,18 L46,18 L46,14 L48,14 L48,10 L49,10 L49,6 L50,6 L50,4 L51,4 L51,6 L52,6 L52,10 L53,10 L53,14 L54,14 L54,18 L56,18 L56,22 L60,22 L60,30 L64,30 L64,22 L68,22 L68,16 L70,16 L70,12 L72,12 L72,10 L73,10 L73,6 L74,6 L74,10 L75,10 L75,12 L76,12 L76,16 L78,16 L78,22 L82,22 L82,30 L88,30 L88,22 L92,22 L92,16 L94,16 L94,10 L96,10 L96,6 L97,6 L97,4 L98,4 L98,2 L99,2 L99,4 L100,4 L100,6 L101,6 L101,10 L102,10 L102,16 L104,16 L104,22 L108,22 L108,30 L114,30 L114,22 L118,22 L118,18 L120,18 L120,14 L122,14 L122,18 L124,18 L124,22 L128,22 L128,30 L134,30 L134,22 L138,22 L138,16 L140,16 L140,12 L142,12 L142,16 L144,16 L144,22 L148,22 L148,30 L154,30 L154,22 L158,22 L158,18 L162,18 L162,22 L166,22 L166,28 L172,28 L172,20 L176,20 L176,14 L178,14 L178,20 L182,20 L182,28 L188,28 L188,20 L192,20 L192,14 L194,14 L194,20 L198,20 L198,28 L204,28 L204,20 L208,20 L208,26 L214,26 L214,32 L220,32 L220,24 L224,24 L224,20 L226,20 L226,24 L230,24 L230,32 L236,32 L236,24 L240,24 L240,28 L246,28 L246,34 L252,34 L252,26 L256,26 L256,22 L258,22 L258,26 L262,26 L262,34 L268,34 L268,26 L272,26 L272,32 L278,32 L278,36 L284,36 L284,30 L288,30 L288,34 L294,34 L294,38 L300,38 L300,32 L304,32 L304,38 L310,38 L310,34 L314,34 L314,38 L320,38 L320,34 L324,34 L324,38 L330,38 L330,36 L336,36 L336,38 L342,38 L342,36 L348,36 L348,40 L360,40 L360,42 L375,42 L375,44 Z"
+          />
+        </svg>
+      </div>
+
       <div className="flex items-stretch max-w-lg mx-auto">
         {navItems.map((item) => {
           const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
