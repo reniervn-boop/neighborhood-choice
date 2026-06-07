@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useNoticeboard } from '@/lib/hooks/useNoticeboard';
 import { getNewsletters } from '@/lib/services/newsletterService';
+import { removeAnnouncement } from '@/lib/services/noticeboardService';
 import { Newsletter, Announcement } from '@/lib/types';
 import AppHeader from '@/components/AppHeader';
 import AlertsTicker from '@/components/noticeboard/AlertsTicker';
@@ -16,11 +17,12 @@ type FilterCategory = (typeof CATEGORY_FILTERS)[number];
 
 export default function NoticeboardPage() {
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, isCommittee } = useAuth();
   const { announcements, alerts, loading: boardLoading, refresh } = useNoticeboard();
 
   const [filter, setFilter] = useState<FilterCategory>('All');
   const [selected, setSelected] = useState<Announcement | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [newsletters, setNewsletters] = useState<Newsletter[]>([]);
   const [nlLoading, setNlLoading] = useState(true);
 
@@ -35,6 +37,17 @@ export default function NoticeboardPage() {
 
   if (authLoading) return <LoadingScreen message="Loading…" />;
   if (!user) { router.push('/auth/login'); return null; }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this announcement? This cannot be undone.')) return;
+    setDeleting(true);
+    try {
+      await removeAnnouncement(id);
+      setSelected(null);
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const filtered =
     filter === 'All' ? announcements : announcements.filter((a) => a.category === filter);
@@ -228,6 +241,17 @@ export default function NoticeboardPage() {
               {selected.category === 'Governance' && (
                 <div className="mt-6 pt-4 border-t border-gray-100 flex justify-center">
                   <img src="/sx7ra-logo.svg" alt="SX7RA" className="h-10 w-auto opacity-80" draggable={false} />
+                </div>
+              )}
+              {isCommittee && (
+                <div className="mt-6 pt-4 border-t border-gray-100">
+                  <button
+                    onClick={() => handleDelete(selected.id)}
+                    disabled={deleting}
+                    className="w-full py-2.5 rounded-xl text-sm font-bold text-red-600 border-2 border-red-100 bg-red-50 hover:bg-red-100 transition-colors disabled:opacity-50"
+                  >
+                    {deleting ? 'Deleting…' : '🗑 Delete announcement'}
+                  </button>
                 </div>
               )}
             </div>
