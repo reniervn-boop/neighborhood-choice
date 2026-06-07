@@ -45,6 +45,13 @@ export default function HalloweenLayout({ children }: { children: React.ReactNod
             >
               📖 Index
             </Link>
+            <Link
+              href="/events/halloween/admin"
+              className="px-3 py-1.5 text-xs font-semibold rounded-full transition-colors"
+              style={{ color: '#aaaaaa', backgroundColor: 'rgba(255,255,255,0.05)' }}
+            >
+              🔑 Admin
+            </Link>
           </div>
         </div>
       </nav>

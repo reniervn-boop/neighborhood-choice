@@ -130,7 +130,7 @@ export default function HalloweenMapView({ photos }: MapViewProps) {
               ✕
             </button>
             <img
-              src={`/halloween-uploads/${activePhoto.filename}`}
+              src={activePhoto.imageUrl || `/halloween-uploads/${activePhoto.filename}`}
               alt={activePhoto.title}
               className="w-full h-44 object-cover"
             />

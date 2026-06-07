@@ -1,9 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { useAuth } from '@/lib/hooks/useAuth';
 import { HalloweenPhoto } from '@/lib/halloween/photos';
 import { monsters } from '@/lib/halloween/monsters';
 
@@ -30,9 +28,6 @@ const HalloweenAdminMapPicker = dynamic(
 type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
 
 export default function HalloweenAdminPage() {
-  const router = useRouter();
-  const { user, isCommittee, loading: authLoading } = useAuth();
-
   const [password, setPassword] = useState('');
   const [authenticated, setAuthenticated] = useState(false);
   const [authError, setAuthError] = useState('');
@@ -49,13 +44,6 @@ export default function HalloweenAdminPage() {
   const [photos, setPhotos] = useState<HalloweenPhoto[]>([]);
 
   const fileRef = useRef<HTMLInputElement>(null);
-
-  // Redirect if not committee
-  useEffect(() => {
-    if (!authLoading && (!user || !isCommittee)) {
-      router.push('/events/halloween');
-    }
-  }, [authLoading, user, isCommittee, router]);
 
   async function loadPhotos() {
     const res = await fetch('/api/halloween/photos');
@@ -137,14 +125,6 @@ export default function HalloweenAdminPage() {
     setAuthError('');
     setAuthenticated(true);
     loadPhotos();
-  }
-
-  if (authLoading) {
-    return (
-      <div className="min-h-[70vh] flex items-center justify-center">
-        <p className="text-gray-400 animate-pulse">Loading…</p>
-      </div>
-    );
   }
 
   if (!authenticated) {
@@ -390,7 +370,7 @@ export default function HalloweenAdminPage() {
                       style={{ backgroundColor: '#12121e' }}
                     >
                       <img
-                        src={`/halloween-uploads/${photo.filename}`}
+                        src={photo.imageUrl || `/halloween-uploads/${photo.filename}`}
                         alt={photo.title}
                         className="w-16 h-16 object-cover rounded-lg shrink-0"
                       />

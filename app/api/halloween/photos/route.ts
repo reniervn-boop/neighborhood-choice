@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
-import path from 'path';
-import fs from 'fs/promises';
 import { addHalloweenPhoto, getHalloweenPhotos } from '@/lib/halloween/photos';
 
-const UPLOADS_DIR = path.join(process.cwd(), 'public', 'halloween-uploads');
 const MAX_FILE_SIZE = 8 * 1024 * 1024; // 8 MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
@@ -15,12 +12,9 @@ function isAuthorized(req: NextRequest): boolean {
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const monsterType = searchParams.get('monster');
-
-  const photos = await getHalloweenPhotos();
-  const filtered = monsterType ? photos.filter((p) => p.monsterType === monsterType) : photos;
-
-  return NextResponse.json(filtered);
+  const monsterType = searchParams.get('monster') ?? undefined;
+  const photos = await getHalloweenPhotos(monsterType);
+  return NextResponse.json(photos);
 }
 
 export async function POST(request: NextRequest) {
@@ -54,22 +48,19 @@ export async function POST(request: NextRequest) {
   const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
   const filename = `${uuidv4()}.${ext}`;
 
-  await fs.mkdir(UPLOADS_DIR, { recursive: true });
-  const bytes = await file.arrayBuffer();
-  await fs.writeFile(path.join(UPLOADS_DIR, filename), Buffer.from(bytes));
+  const photo = await addHalloweenPhoto(
+    {
+      filename,
+      originalName: file.name,
+      title,
+      description,
+      lat,
+      lng,
+      monsterType,
+      uploadedAt: new Date().toISOString(),
+    },
+    file,
+  );
 
-  const photo = {
-    id: uuidv4(),
-    filename,
-    originalName: file.name,
-    title,
-    description,
-    lat,
-    lng,
-    monsterType,
-    uploadedAt: new Date().toISOString(),
-  };
-
-  await addHalloweenPhoto(photo);
   return NextResponse.json(photo, { status: 201 });
 }
