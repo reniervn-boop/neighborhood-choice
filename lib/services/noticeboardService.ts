@@ -39,7 +39,7 @@ export async function publishAnnouncement(
     return { error: firstError };
   }
 
-  const id = await createAnnouncement({
+  const announcementData: Parameters<typeof createAnnouncement>[0] = {
     title: input.title.trim(),
     bodyHtml: input.bodyHtml,
     bodyText: input.bodyText.trim(),
@@ -49,8 +49,13 @@ export async function publishAnnouncement(
     attachments: input.attachments ?? [],
     isPinned: input.isPinned ?? false,
     publishedAt: Date.now(),
-    expiresAt: input.expiresAt,
-  });
+  };
+  // Only include expiresAt when it has a real value — Firestore rejects undefined
+  if (input.expiresAt !== undefined) {
+    announcementData.expiresAt = input.expiresAt;
+  }
+
+  const id = await createAnnouncement(announcementData);
 
   return { id };
 }
