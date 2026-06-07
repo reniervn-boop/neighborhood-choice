@@ -160,5 +160,14 @@ service cloud.firestore {
       allow update: if isCommittee();
       allow delete: if isSuperAdmin();
     }
+
+    // ─── Halloween Monster Walk — public event ────────────────────────────────
+    // Reads are public (no login needed to view sightings on the event page).
+    // Writes are open because auth is enforced at the API-route level via the
+    // admin password header — Firestore auth is not available in server routes.
+    match /halloween_photos/{photoId} {
+      allow read: if true;
+      allow write: if true;
+    }
   }
 }
