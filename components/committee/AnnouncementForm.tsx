@@ -135,9 +135,15 @@ export default function AnnouncementForm({ authorId, authorName, onSuccess, onCa
 
       toast.success('Announcement published!');
       onSuccess?.();
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Announcement publish error:', err);
-      toast.error('Upload failed — please try again');
+      const msg =
+        err instanceof Error
+          ? err.message
+          : typeof err === 'object' && err !== null && 'message' in err
+          ? String((err as { message: unknown }).message)
+          : 'Upload failed — please try again';
+      toast.error(msg);
     } finally {
       setLoading(false);
       setUploadProgress([]);
