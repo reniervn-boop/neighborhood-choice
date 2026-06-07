@@ -18,7 +18,7 @@ import { Announcement } from '@/lib/types';
 
 const COL = 'announcements';
 
-function toAnnouncement(id: string, data: Record<string, unknown>): Announcement {
+export function toAnnouncementDoc(id: string, data: Record<string, unknown>): Announcement {
   return {
     id,
     title: data.title as string,
@@ -65,14 +65,14 @@ export async function getAnnouncements(limitCount = 20): Promise<Announcement[]>
   );
   const snap = await getDocs(q);
   return snap.docs
-    .map((d) => toAnnouncement(d.id, d.data() as Record<string, unknown>))
+    .map((d) => toAnnouncementDoc(d.id, d.data() as Record<string, unknown>))
     .filter((a) => !a.expiresAt || a.expiresAt > now);
 }
 
 export async function getAnnouncementById(id: string): Promise<Announcement | null> {
   const snap = await getDoc(doc(db, COL, id));
   if (!snap.exists()) return null;
-  return toAnnouncement(snap.id, snap.data() as Record<string, unknown>);
+  return toAnnouncementDoc(snap.id, snap.data() as Record<string, unknown>);
 }
 
 export async function updateAnnouncement(
@@ -96,6 +96,6 @@ export async function getPinnedAnnouncements(): Promise<Announcement[]> {
   const snap = await getDocs(q);
   const now = Date.now();
   return snap.docs
-    .map((d) => toAnnouncement(d.id, d.data() as Record<string, unknown>))
+    .map((d) => toAnnouncementDoc(d.id, d.data() as Record<string, unknown>))
     .filter((a) => !a.expiresAt || a.expiresAt > now);
 }
