@@ -199,6 +199,8 @@ export default function Home() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           </Link>
+          {/* Crime Dashboard */}
+          <QuickCard href="/crime" emoji="🔍" label="Crime Report" sub="Security intelligence" />
           {/* Contacts */}
           <QuickCard href="/contacts" emoji="📞" label="Contacts" sub="Committee &amp; emergency" />
           {/* AGM */}
