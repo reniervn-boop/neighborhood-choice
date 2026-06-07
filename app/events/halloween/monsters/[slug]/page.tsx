@@ -3,9 +3,8 @@ import Link from 'next/link';
 import { getMonsterBySlug, monsters } from '@/lib/halloween/monsters';
 import { getHalloweenPhotos } from '@/lib/halloween/photos';
 
-export function generateStaticParams() {
-  return monsters.map((m) => ({ slug: m.slug }));
-}
+// Firestore requires auth — render on demand, not at build time
+export const dynamic = 'force-dynamic';
 
 const DANGER_LABELS = ['', 'Mild', 'Moderate', 'Dangerous', 'Very Dangerous', 'LETHAL'];
 const DANGER_COLORS = [
