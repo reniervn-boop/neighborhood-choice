@@ -169,13 +169,5 @@ service cloud.firestore {
       allow read: if true;
       allow write: if true;
     }
-
-    // ─── Digital Circus game saves ─────────────────────────────────────────────
-    // Standalone game project (digital-circus-game/) reusing this Firebase
-    // project. Each save is a single doc keyed by the player's (anonymous)
-    // auth uid, holding their character, NPC relationships, and quest progress.
-    match /gameSaves/{uid} {
-      allow read, write: if isSignedIn() && request.auth.uid == uid;
-    }
   }
 }
