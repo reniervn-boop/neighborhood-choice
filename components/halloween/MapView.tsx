@@ -63,10 +63,14 @@ export default function HalloweenMapView({ photos }: MapViewProps) {
 
       mapInstanceRef.current = map;
 
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      // CARTO's dark basemap started requiring an API key and now serves tiles
+      // stamped "API KEY REQUIRED", which made the map look broken. Standard
+      // OSM tiles need no key; the dark Halloween look comes from a CSS filter
+      // applied to the tile layer (see .monster-map-tiles in globals.css).
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
-        subdomains: 'abcd',
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        className: 'monster-map-tiles',
         maxZoom: 19,
       }).addTo(map);
 

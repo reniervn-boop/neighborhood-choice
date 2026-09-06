@@ -15,6 +15,7 @@ import {
   deleteObject,
 } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase/config';
+import { isBuiltInSighting, seedSightings } from './seedSightings';
 
 export interface HalloweenPhoto {
   id: string;
@@ -28,15 +29,37 @@ export interface HalloweenPhoto {
   uploadedAt: string;
   /** Firebase Storage download URL — always prefer this over the local path */
   imageUrl?: string;
+  /**
+   * True for the sightings bundled with the app (see seedSightings.ts). These
+   * are not Firestore documents, so they cannot be edited or deleted from the
+   * admin panel.
+   */
+  builtIn?: boolean;
 }
 
 const COL = 'halloween_photos';
 
-/** Fetch all sightings, newest first. Optionally filter by monster slug client-side. */
+/**
+ * Fetch all sightings, newest first. Optionally filter by monster slug.
+ *
+ * The built-in sightings are merged in with whatever residents have uploaded,
+ * so the map is never empty. If Firestore is unreachable the built-ins are
+ * still returned rather than failing the whole page.
+ */
 export async function getHalloweenPhotos(monsterType?: string): Promise<HalloweenPhoto[]> {
-  const q = query(collection(db, COL), orderBy('uploadedAt', 'desc'));
-  const snap = await getDocs(q);
-  const all = snap.docs.map((d) => ({ id: d.id, ...d.data() } as HalloweenPhoto));
+  let uploaded: HalloweenPhoto[] = [];
+  try {
+    const q = query(collection(db, COL), orderBy('uploadedAt', 'desc'));
+    const snap = await getDocs(q);
+    uploaded = snap.docs.map((d) => ({ id: d.id, ...d.data() } as HalloweenPhoto));
+  } catch (err) {
+    console.warn('Could not read uploaded sightings, showing built-ins only:', err);
+  }
+
+  const all = [...uploaded, ...seedSightings].sort((a, b) =>
+    b.uploadedAt.localeCompare(a.uploadedAt),
+  );
+
   return monsterType ? all.filter((p) => p.monsterType === monsterType) : all;
 }
 
@@ -65,6 +88,9 @@ export async function addHalloweenPhoto(
  * Returns true if found and deleted, false if the document didn't exist.
  */
 export async function removeHalloweenPhoto(id: string): Promise<boolean> {
+  // Built-ins ship with the app and have no Firestore document or Storage file.
+  if (isBuiltInSighting(id)) return false;
+
   const docRef = doc(db, COL, id);
   const snap = await getDoc(docRef);
   if (!snap.exists()) return false;

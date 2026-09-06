@@ -203,7 +203,7 @@ export default async function MonsterDetailPage({
                 className="group relative rounded-xl overflow-hidden border border-white/10 hover:border-orange-500/50 transition-all duration-200"
               >
                 <img
-                  src={`/halloween-uploads/${photo.filename}`}
+                  src={photo.imageUrl || `/halloween-uploads/${photo.filename}`}
                   alt={photo.title}
                   className="w-full h-28 object-cover group-hover:scale-105 transition-transform duration-300"
                 />

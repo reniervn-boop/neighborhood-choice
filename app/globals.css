@@ -261,3 +261,10 @@ body {
 
 /* ─── Joburg skyline decoration ─────────────────────────────────────────────── */
 .skyline-fill { fill: var(--brand-black); }
+
+/* ─── Monster Walk map ──────────────────────────────────────────────────────── */
+/* Standard OpenStreetMap tiles rendered dark, so the Halloween map keeps its
+   night look without depending on a keyed tile provider. */
+.monster-map-tiles {
+  filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(1.05) saturate(0.7);
+}

@@ -385,13 +385,24 @@ export default function HalloweenAdminPage() {
                           {photo.lat.toFixed(4)}, {photo.lng.toFixed(4)}
                         </p>
                       </div>
-                      <button
-                        onClick={() => handleDelete(photo.id)}
-                        className="text-gray-600 hover:text-red-400 transition-colors shrink-0 self-start"
-                        title="Delete sighting"
-                      >
-                        🗑
-                      </button>
+                      {photo.builtIn ? (
+                        // Built-ins ship with the app — there is no Firestore
+                        // document or Storage file to remove.
+                        <span
+                          className="text-[10px] text-gray-500 border border-white/10 rounded-full px-2 py-0.5 shrink-0 self-start"
+                          title="Bundled with the app — cannot be deleted here"
+                        >
+                          built-in
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => handleDelete(photo.id)}
+                          className="text-gray-600 hover:text-red-400 transition-colors shrink-0 self-start"
+                          title="Delete sighting"
+                        >
+                          🗑
+                        </button>
+                      )}
                     </div>
                   );
                 })}
