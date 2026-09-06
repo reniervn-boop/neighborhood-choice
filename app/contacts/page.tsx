@@ -1,9 +1,9 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/useAuth';
 import AppHeader from '@/components/AppHeader';
-import LoadingScreen from '@/components/LoadingScreen';
 
 // ─── Static contact data ────────────────────────────────────────────────────
 // Update these with real SX7RA committee / estate contacts
@@ -34,11 +34,13 @@ export default function ContactsPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  if (loading) return <LoadingScreen message="Loading contacts…" />;
-  if (!user) {
-    router.push('/auth/login');
-    return null;
-  }
+  // Everything on this page is static, so there is nothing to wait for. Render
+  // immediately — these are emergency numbers, and making someone watch a
+  // spinner resolve Firebase auth before showing 10111 is the wrong trade.
+  // Redirect only once auth has actually settled as signed-out.
+  useEffect(() => {
+    if (!loading && !user) router.replace('/auth/login');
+  }, [loading, user, router]);
 
   return (
     <div className="min-h-dvh pb-24 lg:pb-8" style={{ backgroundColor: 'var(--background)' }}>

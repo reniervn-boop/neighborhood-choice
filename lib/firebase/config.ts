@@ -1,6 +1,12 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import {
+  Firestore,
+  getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+} from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getMessaging, isSupported } from 'firebase/messaging';
 
@@ -20,7 +26,37 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+
+/**
+ * In the browser, back Firestore with the IndexedDB cache.
+ *
+ * Residents are on mobile data on a Joburg network; without this every page
+ * navigation re-fetches the same documents over the wire, and going through a
+ * tunnel leaves reads hanging. With it, repeat reads are served locally and the
+ * SDK syncs in the background.
+ *
+ * `initializeFirestore` has to run before anything calls `getFirestore`, which
+ * is why it lives here at module scope. On the server (route handlers, SSR)
+ * there is no IndexedDB, so fall back to the plain instance.
+ */
+function createFirestore(): Firestore {
+  if (typeof window === 'undefined') return getFirestore(app);
+
+  try {
+    return initializeFirestore(app, {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager(),
+      }),
+    });
+  } catch (err) {
+    // Private browsing, a blocked IndexedDB, or an already-initialised
+    // instance during hot reload. Memory-only is a fine degradation.
+    console.warn('Firestore persistent cache unavailable, using memory only:', err);
+    return getFirestore(app);
+  }
+}
+
+export const db = createFirestore();
 export const storage = getStorage(app);
 
 // Messaging only available in browser
