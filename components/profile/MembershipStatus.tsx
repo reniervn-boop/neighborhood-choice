@@ -103,7 +103,7 @@ export default function MembershipStatus({ user }: MembershipStatusProps) {
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2">
               Annual Fee
             </p>
-            {daysLeft > 0 ? (
+            {!isOverdue ? (
               <div
                 className={`p-3 rounded-lg ${
                   daysLeft <= 7 ? 'bg-amber-50' : 'bg-green-50'
@@ -117,14 +117,18 @@ export default function MembershipStatus({ user }: MembershipStatusProps) {
                   Due in {daysLeft} day{daysLeft !== 1 ? 's' : ''}
                 </p>
                 <p className="text-xs text-gray-600 mt-1">
-                  Payment due annually on March 1st
+                  Payment falls due on 1 July, the start of the Association&rsquo;s
+                  financial year (Constitution § 5.3.2)
                 </p>
               </div>
             ) : (
-              <div className="p-3 rounded-lg bg-red-50">
-                <p className="text-sm font-semibold text-red-700">Overdue</p>
+              <div className="p-3 rounded-lg bg-amber-50">
+                <p className="text-sm font-semibold text-amber-800">Payment due</p>
                 <p className="text-xs text-gray-600 mt-1">
-                  Please pay your annual membership fee to restore voting rights
+                  Your annual fee is past its due date. Under § 5.3.5 you keep your
+                  vote until twelve months have passed since your last payment
+                  <em> and</em> an AGM has been held — but paying now avoids any
+                  question at the next meeting.
                 </p>
               </div>
             )}
@@ -159,8 +163,8 @@ export default function MembershipStatus({ user }: MembershipStatusProps) {
           <p className="text-xs text-blue-900">
             <strong>Membership</strong> is voluntary and governed by the SX7RA Constitution.
             See the{' '}
-            <a href="/constitution" className="underline font-semibold">
-              full constitution
+            <a href="/governance" className="underline font-semibold">
+              founding documents
             </a>{' '}
             for details.
           </p>

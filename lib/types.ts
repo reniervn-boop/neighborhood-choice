@@ -1,3 +1,126 @@
+// ─── Service Requests (Debit orders, membership, sales rep) ───────────────────
+// Brainmap: debit-order create/cancel/hardcopy notifications to "Deon and Tony",
+// membership payment, and Security "Request Sales Rep". One committee-visible
+// queue handles them all.
+
+export type ServiceRequestType =
+  | 'debit_order_create'
+  | 'debit_order_cancel'
+  | 'debit_order_hardcopy'
+  | 'membership_payment'
+  | 'sales_rep';
+
+export type ServiceRequestStatus = 'open' | 'in_progress' | 'done' | 'cancelled';
+
+export interface ServiceRequest {
+  id: string;
+  type: ServiceRequestType;
+  userId: string;
+  userName: string;
+  userEmail?: string;
+  userCell?: string;
+  /** Free-text detail / amount / notes from the resident */
+  details?: string;
+  status: ServiceRequestStatus;
+  createdAt: number;
+  handledBy?: string;
+  handledAt?: number;
+}
+
+// ─── SX7 Prospectus (Listings) ────────────────────────────────────────────────
+// Brainmap: "SX7 Prospectus — Properties for sale, Business for Sale, Sponsoring
+// Agents, Map of SX7 with SX7RA boundaries, Picture of streets and residences,
+// Pictures of businesses (provided they are members), Xtra pictures of
+// sponsoring businesses".
+
+export type ListingKind =
+  | 'property_sale'   // Properties for sale
+  | 'business_sale'   // Businesses for sale
+  | 'sponsoring_agent'// Estate agents who sponsor the association
+  | 'member_business' // Member businesses
+  | 'sponsor'         // Sponsoring businesses
+  | 'gallery';        // Streets / residences photos
+
+export interface Listing {
+  id: string;
+  kind: ListingKind;
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  /** Price for property/business sale listings (free text, e.g. "R1 950 000") */
+  price?: string;
+  contactName?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  /** External link (agent listing, business website) */
+  url?: string;
+  /** Featured listings appear first */
+  featured?: boolean;
+  createdBy: string;
+  createdAt: number;
+  updatedAt?: number;
+}
+
+// ─── Petitions (Ward) ─────────────────────────────────────────────────────────
+// Brainmap: "PETITIONS — Consider link to petitions", "No petitions at this
+// time", "Link to IEC Website And WA".
+
+export interface Petition {
+  id: string;
+  title: string;
+  description?: string;
+  /** External link where residents sign / view the petition */
+  url: string;
+  isActive: boolean;
+  createdBy: string;
+  createdByName: string;
+  createdAt: number;
+  /** Optional auto-close date */
+  closesAt?: number;
+}
+
+// ─── Document Library ─────────────────────────────────────────────────────────
+// Brainmap: "OTHER DOCUMENTS — Minutes of meetings, BOD decisions, Project
+// Reports, Financial Statements. There must be view access dependent on viewer
+// and document classification" + the "Document Templates" branch (Letterhead,
+// Attendance Register, Bank Mandate, Logo, Minutes, CIPC, Budget, Debit Order
+// Form, Membership Form, etc.).
+
+/** Who may view a document. Enforced in Firestore rules + query filter. */
+export type DocumentClassification =
+  | 'public'     // any signed-in resident
+  | 'members'    // paying members in good standing (+ staff)
+  | 'committee'; // committee / BOD / admin only
+
+export type DocumentCategory =
+  | 'Minutes'
+  | 'BOD Decision'
+  | 'Financial Statement'
+  | 'Project Report'
+  | 'Constitution & MOI'
+  | 'CIPC'
+  | 'Template'
+  | 'Other';
+
+export interface LibraryDocument {
+  id: string;
+  title: string;
+  description?: string;
+  category: DocumentCategory;
+  classification: DocumentClassification;
+  /** Uploaded file (Firebase Storage) — mutually exclusive with externalUrl */
+  fileUrl?: string;
+  /** External link (e.g. Google Drive) — used when no file is uploaded */
+  externalUrl?: string;
+  fileName?: string;
+  mimeType?: string;
+  sizeBytes?: number;
+  uploadedBy: string;
+  uploadedByName: string;
+  createdAt: number;
+  updatedAt?: number;
+}
+
 // ─── Newsletters ──────────────────────────────────────────────────────────────
 
 export interface Newsletter {
@@ -18,6 +141,13 @@ export interface Newsletter {
 export type UserRole = 'resident' | 'committee' | 'super_admin' | 'admin';
 
 export type MembershipStatus = 'paying' | 'non-paying' | 'suspended' | 'expelled';
+
+/**
+ * Constitution v2.13.A cl. 5.1.2 recognises three member categories. Status
+ * ('paying' / 'non-paying') already distinguishes the two residential ones, so
+ * this only needs to separate residential from business membership.
+ */
+export type MembershipCategory = 'residential' | 'business';
 
 export interface User {
   uid: string;
@@ -47,6 +177,12 @@ export interface User {
   inviteCode?: string;
   proofOfResidency?: string; // URL to uploaded document
 
+  // ─── Committee / BOD (Brainmap: "COMMITTEE AND BOD") ────────────────────────
+  /** Portfolio / position, e.g. "Chairperson", "Treasurer", "Secretary" */
+  portfolio?: string;
+  /** True if this member sits on the Board of Directors (BOD) */
+  isBoardMember?: boolean;
+
   // ─── Membership Status (Constitution Enforcement) ───────────────────────────
   /** Paying or non-paying member status per SX7RA Constitution */
   membershipStatus?: MembershipStatus;
@@ -60,6 +196,16 @@ export interface User {
   canVote?: boolean;
   /** Whether member can stand for committee election (paying + good standing) */
   canStandForOffice?: boolean;
+  /** Residential or business membership (Constitution cl. 5.1.2). Defaults to residential. */
+  membershipCategory?: MembershipCategory;
+  /** Trading name, for Business Members (Constitution cl. 5.1.2) */
+  businessName?: string;
+  /**
+   * Constitution cl. 5.1.2 caps voting at two Residential Paying Members per
+   * residential address. Set by the Secretary when a third+ resident at the
+   * same address pays; those members keep membership but not the vote.
+   */
+  votingDesignated?: boolean;
 }
 
 // ─── Reports ──────────────────────────────────────────────────────────────────
@@ -92,7 +238,19 @@ export interface Report {
   committeeNoteBy?: string;
   councilReference?: string;
   escalatedAt?: number;
+
+  // ─── SLA & Auto-escalation (Brainmap: AUTO ESCALATION) ──────────────────────
+  /** Severity drives the SLA window; higher severity escalates sooner */
+  severity?: ReportSeverity;
+  /** Timestamp by which the responsible authority should have actioned this */
+  slaDueAt?: number;
+  /** Set when the fault has been escalated to the Ward Councillor group */
+  escalatedToWardAt?: number;
+  /** Free-text note attached at escalation time */
+  escalationNote?: string;
 }
+
+export type ReportSeverity = 'low' | 'medium' | 'high' | 'critical';
 
 export type ReportCategory =
   | 'Pothole'
@@ -102,7 +260,20 @@ export type ReportCategory =
   | 'Stormwater'
   | 'Traffic Light'
   | 'Pavement'
-  | 'Other';
+  | 'Other'
+  // ─── Community improvement / rewards (Brainmap: REWARDS) ──────────────────
+  // Positive contributions that earn points but are NOT faults — they are never
+  // submitted to a municipality and never auto-escalate.
+  | 'Pavement Care'
+  | 'Poster Removal'
+  | 'Garden/Greening';
+
+/** Reward categories — civic improvements, not faults. */
+export const REWARD_CATEGORIES: ReportCategory[] = ['Pavement Care', 'Poster Removal', 'Garden/Greening'];
+
+export function isRewardCategory(category: ReportCategory): boolean {
+  return REWARD_CATEGORIES.includes(category);
+}
 
 // ─── Gamification ─────────────────────────────────────────────────────────────
 
@@ -299,6 +470,20 @@ export interface CommunityProject {
   paymentMethods: PaymentMethod[];
   /** SnapScan merchant code / PayFast merchant ID, etc. */
   paymentConfig?: Record<string, string>;
+
+  // ─── Project planning metadata (Brainmap: VISION/MISSION + FUNDING) ──────────
+  /** Detailed scope of work */
+  scope?: string;
+  /** Estimated duration in days */
+  estimatedDurationDays?: number;
+  /** Estimated start date (timestamp) */
+  startDate?: number;
+  /** Estimated end date (timestamp) */
+  endDate?: number;
+  /** Committee-reported delivery progress 0–100 (distinct from funding %) */
+  progressPercent?: number;
+  /** Free-text progress note shown to residents */
+  progressNote?: string;
 }
 
 export interface Donation {

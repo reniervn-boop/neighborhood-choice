@@ -1,7 +1,8 @@
 /**
  * Constitution Enforcement Utilities
  *
- * Enforces rules from SX7RA Constitution v2.1
+ * Enforces rules from the SX7RA Constitution v2.13.A (Final Draft 2026.07.18),
+ * read with the amended and restated MOI (Final Draft 2026.07.14).
  * - Membership status (paying vs non-paying)
  * - Voting eligibility
  * - Committee office eligibility
@@ -9,7 +10,7 @@
  * - Fee payment tracking
  */
 
-import { User, MembershipStatus } from './types';
+import { User } from './types';
 
 // ── Membership Status ────────────────────────────────────────────────────────
 
@@ -26,6 +27,15 @@ export function isPayingMember(user: User | null | undefined): boolean {
     user.canVote === true &&
     user.suspensionReason === undefined
   );
+}
+
+/**
+ * Whether the member falls in the Business Member category (Constitution
+ * § 5.1.2). The vote belongs to the business entity and is exercised by its
+ * designated representative.
+ */
+export function isBusinessMember(user: User | null | undefined): boolean {
+  return user?.membershipCategory === 'business';
 }
 
 /**
@@ -49,19 +59,86 @@ export function isSuspendedOrExpelled(user: User | null | undefined): boolean {
 }
 
 /**
- * Calculate if fee payment is overdue
+ * The Association's financial year runs 1 July → 30 June (Constitution § 8.5),
+ * and the annual fee falls due on 1 July each year (§ 5.3.2).
+ */
+export const FINANCIAL_YEAR_START_MONTH = 6; // July, 0-indexed
+export const FINANCIAL_YEAR_START_DAY = 1;
+
+/**
+ * Next 1 July strictly after the given instant.
+ */
+export function nextFeeDueDate(from: number = Date.now()): number {
+  const d = new Date(from);
+  const due = new Date(
+    d.getFullYear(),
+    FINANCIAL_YEAR_START_MONTH,
+    FINANCIAL_YEAR_START_DAY,
+  );
+  if (due.getTime() <= from) due.setFullYear(due.getFullYear() + 1);
+  return due.getTime();
+}
+
+/**
+ * Whether the annual fee is past its due date.
  *
- * Constitution § 5.3.2: Annual fee due "1 March of each year"
- * Constitution § 5.3.4: "A member whose annual fee is not paid by 31 March
- * of the relevant membership year shall automatically lapse to non-paying
- * member status"
+ * Constitution § 5.3.2: the fee is due on joining and thereafter on 1 July.
+ * Note that being overdue is NOT by itself enough to lose the vote — see
+ * hasMembershipLapsed() for the two-part test in § 5.3.5.
  */
 export function isFeeOverdue(user: User | null | undefined): boolean {
   if (!user || !user.feeDueDate) return false;
-  const now = Date.now();
-  // Add 30 days grace period (March 1 → March 31)
-  const graceEnd = user.feeDueDate + 30 * 24 * 60 * 60 * 1000;
-  return now > graceEnd;
+  return Date.now() > user.feeDueDate;
+}
+
+/**
+ * Whether membership has lapsed to non-paying status.
+ *
+ * Constitution § 5.3.5: a member lapses "once BOTH of the following have
+ * occurred since their most recent membership fee payment: (a) twelve (12)
+ * months have elapsed; and (b) an Annual General Meeting has been held."
+ *
+ * Both limbs are required, so a member who paid 13 months ago has NOT lapsed if
+ * no AGM has been held in the interim.
+ *
+ * @param lastAgmDate Date of the most recent AGM, if one has been held
+ */
+export function hasMembershipLapsed(
+  user: User | null | undefined,
+  lastAgmDate?: number,
+  now: number = Date.now(),
+): boolean {
+  if (!user) return false;
+  if (user.membershipStatus !== 'paying') return false;
+  if (!user.lastFeePaymentDate) return false;
+
+  const twelveMonthsAfterPayment = new Date(user.lastFeePaymentDate);
+  twelveMonthsAfterPayment.setFullYear(twelveMonthsAfterPayment.getFullYear() + 1);
+
+  const twelveMonthsElapsed = now >= twelveMonthsAfterPayment.getTime();
+  const agmHeldSincePayment =
+    lastAgmDate !== undefined && lastAgmDate > user.lastFeePaymentDate;
+
+  return twelveMonthsElapsed && agmHeldSincePayment;
+}
+
+/**
+ * Whether a member paying by monthly instalment is in arrears far enough to
+ * lapse.
+ *
+ * Constitution § 5.3.3: instalment payers stay in good standing while up to
+ * date. They lapse if instalments fall more than two months into arrears AND
+ * accumulated instalments for the year have not yet reached the annual fee. A
+ * member whose accumulated instalments equal or exceed the annual fee is
+ * treated as having paid in full and does not lapse.
+ */
+export function hasInstalmentPlanLapsed(
+  monthsInArrears: number,
+  accumulatedCents: number,
+  annualFeeCents: number,
+): boolean {
+  if (accumulatedCents >= annualFeeCents) return false;
+  return monthsInArrears > 2;
 }
 
 /**
@@ -84,7 +161,35 @@ export function daysUntilFeeDue(user: User | null | undefined): number {
  * at General Meetings and at the Annual General Meeting"
  */
 export function canVoteInMeeting(user: User | null | undefined): boolean {
-  return isPayingMember(user);
+  if (!isPayingMember(user)) return false;
+  // Constitution § 5.1.2: at most two Residential Paying Members per residential
+  // address may exercise a vote. Where a third or later resident of the same
+  // address pays, the Secretary clears votingDesignated for them — they remain
+  // members in good standing but do not carry a vote.
+  if (user!.votingDesignated === false) return false;
+  return true;
+}
+
+/**
+ * Whether a member may vote at a *specific* meeting.
+ *
+ * Constitution § 5.4.1: "a member is considered in good standing if their annual
+ * membership fee was received and recorded by the Secretary on or before the
+ * date on which the notice of that meeting was issued. A member who pays their
+ * fee after the notice date shall have their membership status restored with
+ * immediate effect but shall not be entitled to vote at the meeting for which
+ * notice has already been issued."
+ *
+ * @param noticeIssuedAt When notice of the meeting went out
+ */
+export function canVoteAtMeeting(
+  user: User | null | undefined,
+  noticeIssuedAt: number,
+): boolean {
+  if (!canVoteInMeeting(user)) return false;
+  const paidAt = user!.lastFeePaymentDate;
+  if (paidAt === undefined) return false;
+  return paidAt <= noticeIssuedAt;
 }
 
 /**
@@ -128,40 +233,46 @@ export function canBeDirector(user: User | null | undefined): boolean {
 // ── Meeting Quorum ──────────────────────────────────────────────────────────
 
 /**
- * Calculate quorum required for a general meeting
+ * Minimum number of paying members needed for a General Meeting, AGM or SGM.
  *
- * Constitution § 7.4.1: "The quorum for any General Meeting, Annual General
- * Meeting, or Special General Meeting shall be the greater of: (a) twenty-five
- * per cent (25%) of all paying members in good standing on the date of the
- * meeting, or (b) ten (10) paying members, whichever produces the lower number"
+ * Constitution § 7.4.1 / MOI cl. 13.6: "the quorum ... shall be the greater of:
+ * (a) twenty-five per cent (25%) of all paying members in good standing on the
+ * date of the meeting, or (b) ten (10) paying members."
  *
- * @param totalPayingMembers Total number of paying members
+ * Examples (from the Practical note to § 7.4.1):
+ * - 60 paying members → 15 (25% is greater than the floor of 10)
+ * - 30 paying members → 10 (the floor of 10 is greater than 25% = 8)
+ *
+ * @param totalPayingMembers Paying members in good standing on the meeting date
  * @returns Minimum number of members needed for quorum
- *
- * Examples:
- * - 60 members: Math.max(Math.min(15, 10), 1) = 15
- * - 30 members: Math.max(Math.min(8, 10), 1) = 10
- * - 20 members: Math.max(Math.min(5, 10), 1) = 10
- * - 5 members: Math.max(Math.min(2, 10), 1) = 10 (impossible, shows edge case)
  */
 export function calculateQuorum(totalPayingMembers: number): number {
   const percent25 = Math.ceil(totalPayingMembers * 0.25);
-  const minimum = 10;
+  const floor = 10;
 
-  // "the greater of... whichever produces the lower number"
-  // Means: take 25% OR 10, whichever is LOWER
-  const quorum = Math.min(percent25, minimum);
+  const quorum = Math.max(percent25, floor);
 
-  // But never more than total members
+  // A quorum can never exceed the membership it is drawn from. Where the
+  // Association has fewer than ten paying members the whole membership is
+  // needed; § 7.4.2–7.4.3 then govern the adjourned meeting.
   return Math.min(quorum, totalPayingMembers);
 }
 
 /**
- * Check if quorum is met
+ * Check if quorum is met.
+ *
+ * Constitution § 7.4.3 / s64(5) of the Act: at a meeting that has been properly
+ * adjourned for want of a quorum, the members present constitute a quorum
+ * whatever their number. Voting thresholds are unchanged — a special resolution
+ * still needs 75% of the rights exercised.
  */
-export function isQuorumMet(membersPresent: number, totalPayingMembers: number): boolean {
-  const requiredQuorum = calculateQuorum(totalPayingMembers);
-  return membersPresent >= requiredQuorum;
+export function isQuorumMet(
+  membersPresent: number,
+  totalPayingMembers: number,
+  isAdjournedMeeting = false,
+): boolean {
+  if (isAdjournedMeeting) return membersPresent > 0;
+  return membersPresent >= calculateQuorum(totalPayingMembers);
 }
 
 // ── Resolution Voting ────────────────────────────────────────────────────────
@@ -175,7 +286,6 @@ export function isQuorumMet(membersPresent: number, totalPayingMembers: number):
 export function isOrdinaryResolutionPassed(
   votesFor: number,
   votesAgainst: number,
-  votesAbstain: number
 ): boolean {
   const totalVotes = votesFor + votesAgainst; // abstains don't count
   if (totalVotes === 0) return false;
@@ -198,7 +308,6 @@ export function isOrdinaryResolutionPassed(
 export function isSpecialResolutionPassed(
   votesFor: number,
   votesAgainst: number,
-  votesAbstain: number
 ): boolean {
   const totalVotes = votesFor + votesAgainst; // abstains don't count
   if (totalVotes === 0) return false;
@@ -222,17 +331,14 @@ export function getVotePercentage(votesFor: number, totalVotes: number): number 
  */
 export function transitionToPayingMember(user: User): User {
   const now = Date.now();
-  // Annual fee due: March 1st next year
-  const nextYear = new Date(now);
-  nextYear.setFullYear(nextYear.getFullYear() + 1);
-  nextYear.setMonth(2); // March (0-indexed)
-  nextYear.setDate(1);
 
   return {
     ...user,
     membershipStatus: 'paying',
     lastFeePaymentDate: now,
-    feeDueDate: nextYear.getTime(),
+    // Constitution § 5.3.2 / § 8.5: the fee falls due on 1 July, the start of
+    // the Association's financial year.
+    feeDueDate: nextFeeDueDate(now),
     canVote: true,
     canStandForOffice: true,
     suspensionReason: undefined,
@@ -376,8 +482,6 @@ export function getMembershipStatusSummary(user: User | null | undefined): {
       isGoodStanding: false,
     };
   }
-
-  const isGood = isPayingMember(user);
 
   if (user.membershipStatus === 'expelled') {
     return {
