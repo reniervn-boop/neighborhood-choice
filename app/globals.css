@@ -184,12 +184,13 @@ html {
    * iOS Safari has no equivalent setting for web content, which is why the same
    * build looks correct on an iPhone and small on Android.
    *
-   * `auto` hands that choice back to the reader. Chrome only auto-inflates text
-   * on pages without a proper viewport meta, and ours sets width=device-width,
-   * so this does not reintroduce font boosting.
+   * `auto` was tried and reverted: it lets Chrome recompute a text-autosizing
+   * multiplier when the DOM changes, so the size visibly snapped back after a
+   * client-side navigation settled. Sizing is now driven entirely by the root
+   * font ramp below, which is deterministic and under our control.
    */
-  -webkit-text-size-adjust: auto;
-  text-size-adjust: auto;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 /*
@@ -209,10 +210,15 @@ html {
  *
  * 4.21vw is chosen so the ramp meets 16px exactly at 380px; changing the start
  * width means recomputing it (16 / start * 100) or the scale jumps at the edge.
+ *
+ * It runs to the lg breakpoint rather than stopping at 600px: a device that
+ * reports a wide CSS viewport (Samsung "Screen zoom" set small, say) hits the
+ * max-w-lg cap, leaving the content stranded in a narrow centred column with
+ * wide empty margins. Scaling the root grows that container with the type.
  */
-@media (min-width: 380px) and (max-width: 600px) {
+@media (min-width: 380px) and (max-width: 1023px) {
   html {
-    font-size: clamp(16px, 4.21vw, 19px);
+    font-size: clamp(16px, 4.21vw, 20px);
   }
 }
 
