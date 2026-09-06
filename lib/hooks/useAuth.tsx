@@ -12,6 +12,7 @@ import { User as FirebaseUser } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase/config';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { User } from '@/lib/types';
+import { withTimeout } from '@/lib/utils/async';
 
 /**
  * Auth state for the whole app.
@@ -24,7 +25,12 @@ import { User } from '@/lib/types';
  * app/providers.tsx: one listener, one profile read per session.
  */
 
-/** How long to wait for the profile read before falling back. */
+/**
+ * How long to wait for the profile read before falling back.
+ *
+ * Shorter than DATA_TIMEOUT_MS: this one gates every screen in the app, so it
+ * should give up sooner than a single page's data load.
+ */
 const PROFILE_TIMEOUT_MS = 6000;
 
 export interface AuthState {
@@ -62,23 +68,6 @@ function fallbackProfile(fbUser: FirebaseUser): User {
     canVote: false,
     canStandForOffice: false,
   };
-}
-
-/**
- * Reject rather than hang.
- *
- * The Firestore SDK retries a read indefinitely when the network is degraded,
- * so `await getDoc(...)` can never settle. Previously that pinned every screen
- * on the loading spinner forever, because the 8-second safety net had already
- * been cleared by the time the read started.
- */
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('timeout')), ms),
-    ),
-  ]);
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {

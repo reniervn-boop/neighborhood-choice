@@ -6,6 +6,7 @@ import { db } from '@/lib/firebase/config';
 import { LibraryDocument, User } from '@/lib/types';
 import { toDocumentDoc } from '@/lib/repositories/documentRepository';
 import { allowedClassificationsFor } from '@/lib/services/documentService';
+import { loadingDeadline } from '@/lib/utils/async';
 
 /**
  * Real-time document library scoped to what the user is allowed to read.
@@ -33,9 +34,14 @@ export function useDocuments(user: Pick<User, 'role' | 'membershipStatus'> | nul
     setLoading(true);
     const q = query(collection(db, 'documents'), where('classification', 'in', allowed));
 
+    // If neither callback fires (stalled connection), render the empty state
+    // rather than spinning forever. A late snapshot still updates the list.
+    const cancelDeadline = loadingDeadline(() => setLoading(false));
+
     const unsub = onSnapshot(
       q,
       (snap) => {
+        cancelDeadline();
         const docs = snap.docs
           .map((d) => toDocumentDoc(d.id, d.data() as Record<string, unknown>))
           .sort((a, b) => b.createdAt - a.createdAt);
@@ -43,12 +49,16 @@ export function useDocuments(user: Pick<User, 'role' | 'membershipStatus'> | nul
         setLoading(false);
       },
       (err) => {
+        cancelDeadline();
         setError(err.message);
         setLoading(false);
       },
     );
 
-    return unsub;
+    return () => {
+      cancelDeadline();
+      unsub();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allowedKey]);
 

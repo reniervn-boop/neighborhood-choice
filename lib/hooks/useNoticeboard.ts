@@ -13,6 +13,7 @@ import { db } from '@/lib/firebase/config';
 import { Announcement, LocalAlert } from '@/lib/types';
 import { fetchActiveAlerts } from '@/lib/services/noticeboardService';
 import { toAnnouncementDoc } from '@/lib/repositories/announcementRepository';
+import { loadingDeadline } from '@/lib/utils/async';
 
 export function useNoticeboard() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -40,9 +41,12 @@ export function useNoticeboard() {
       limit(20),
     );
 
+    const cancelDeadline = loadingDeadline(() => setLoading(false));
+
     const unsub = onSnapshot(
       q,
       (snap) => {
+        cancelDeadline();
         const all = snap.docs
           .map((d) => toAnnouncementDoc(d.id, d.data() as Record<string, unknown>))
           .filter((a) => !a.expiresAt || a.expiresAt > now);
@@ -50,12 +54,16 @@ export function useNoticeboard() {
         setLoading(false);
       },
       (err) => {
+        cancelDeadline();
         setError(err.message);
         setLoading(false);
       },
     );
 
-    return unsub;
+    return () => {
+      cancelDeadline();
+      unsub();
+    };
   }, []);
 
   // Real-time listener for pinned announcements (ticker)

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { CommunityProject, Donation } from '@/lib/types';
 import { fetchActiveProjects, fetchMyDonations } from '@/lib/services/financeService';
+import { withTimeout } from '@/lib/utils/async';
 
 export function useFinance() {
   const [projects, setProjects] = useState<CommunityProject[]>([]);
@@ -13,7 +14,7 @@ export function useFinance() {
     setLoading(true);
     setError(null);
     try {
-      const active = await fetchActiveProjects();
+      const active = await withTimeout(fetchActiveProjects());
       setProjects(active);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load projects');
@@ -36,7 +37,7 @@ export function useMyDonations(userId: string | undefined) {
   useEffect(() => {
     if (!userId) return;
     setLoading(true);
-    fetchMyDonations(userId)
+    withTimeout(fetchMyDonations(userId))
       .then(setDonations)
       .catch(() => setDonations([]))
       .finally(() => setLoading(false));

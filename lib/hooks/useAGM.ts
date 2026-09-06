@@ -9,6 +9,7 @@ import {
   getVoteResults,
   type PositionResult,
 } from '@/lib/services/agmService';
+import { withTimeout } from '@/lib/utils/async';
 
 export function useAGM() {
   const [agm, setAgm] = useState<AGMWindow | null>(null);
@@ -21,21 +22,33 @@ export function useAGM() {
     setLoading(true);
     setError(null);
     try {
-      const latestAgm = await fetchLatestAGM();
+      const latestAgm = await withTimeout(fetchLatestAGM());
       setAgm(latestAgm);
 
       if (latestAgm) {
-        const noms = await fetchNominationsForAGM(latestAgm.id);
+        // Nominations and results both depend only on the AGM id, so fetch them
+        // together rather than paying the round-trip twice.
+        const [noms, res] = await Promise.all([
+          withTimeout(fetchNominationsForAGM(latestAgm.id)),
+          latestAgm.status === 'closed'
+            ? withTimeout(getVoteResults(latestAgm.id))
+            : Promise.resolve([]),
+        ]);
         setNominations(noms);
-
-        if (latestAgm.status === 'closed') {
-          const res = await getVoteResults(latestAgm.id);
-          setResults(res);
-        }
+        setResults(res);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load AGM data');
+      const timedOut = err instanceof Error && err.message === 'timeout';
+      setError(
+        timedOut
+          ? 'Could not reach the server. Showing what we have — pull to refresh when you have signal.'
+          : err instanceof Error
+            ? err.message
+            : 'Failed to load AGM data',
+      );
     } finally {
+      // Always release the spinner. Without this a stalled read leaves the page
+      // on "Loading AGM…" forever.
       setLoading(false);
     }
   }, []);
