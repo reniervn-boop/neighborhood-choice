@@ -34,6 +34,19 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    /** Paying member in good standing (Constitution enforcement). */
+    function isPayingMember() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.membershipStatus == 'paying';
+    }
+
+    /** Whether the caller may read a document of the given classification. */
+    function canReadDocument(classification) {
+      return (classification == 'public' && isSignedIn())
+        || (classification == 'members' && (isPayingMember() || isStaff()))
+        || (classification == 'committee' && isStaff());
+    }
+
     // ─── Users ────────────────────────────────────────────────────────────────
     match /users/{userId} {
       allow read: if isSignedIn();
@@ -80,6 +93,48 @@ service cloud.firestore {
     match /newsletters/{newsletterId} {
       allow read: if isSignedIn();
       allow write: if isStaff();
+    }
+
+    // ─── Association Settings ─────────────────────────────────────────────────
+    match /settings/{settingId} {
+      allow read: if isSignedIn();
+      // Only super_admin may change governance settings (e.g. approval flag)
+      allow write: if isSuperAdmin();
+    }
+
+    // ─── Petitions (Ward) ─────────────────────────────────────────────────────
+    match /petitions/{petitionId} {
+      allow read: if isSignedIn();
+      allow create: if isCommittee();
+      allow update: if isCommittee();
+      allow delete: if isCommittee();
+    }
+
+    // ─── Service Requests (debit orders, membership, sales rep) ───────────────
+    match /serviceRequests/{requestId} {
+      // Residents see their own; committee sees all
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isCommittee());
+      allow create: if isSignedIn();
+      allow update: if isCommittee();
+      allow delete: if isCommittee();
+    }
+
+    // ─── Prospectus Listings ──────────────────────────────────────────────────
+    match /listings/{listingId} {
+      allow read: if isSignedIn();
+      allow create: if isCommittee();
+      allow update: if isCommittee();
+      allow delete: if isCommittee();
+    }
+
+    // ─── Document Library ─────────────────────────────────────────────────────
+    // Read access depends on the document's classification (public / members /
+    // committee). Only committee or above may publish/manage documents.
+    match /documents/{documentId} {
+      allow read: if canReadDocument(resource.data.classification);
+      allow create: if isCommittee();
+      allow update: if isCommittee();
+      allow delete: if isCommittee();
     }
 
     // ─── Noticeboard: Announcements ───────────────────────────────────────────

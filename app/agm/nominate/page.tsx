@@ -27,7 +27,7 @@ export default function NominatePage() {
   if (!canStandForCommittee(user)) {
     const status = getMembershipStatusSummary(user);
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
+      <div className="min-h-dvh flex flex-col items-center justify-center px-6 text-center">
         <div className="text-5xl mb-3">{status.icon}</div>
         <p className="font-extrabold text-gray-900 mb-1">Cannot Stand for Office</p>
         <p className="text-gray-500 text-sm mb-6 leading-relaxed">
@@ -57,7 +57,7 @@ export default function NominatePage() {
 
   if (!agm || agm.status !== 'nominations_open') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
+      <div className="min-h-dvh flex flex-col items-center justify-center px-6 text-center">
         <div className="text-5xl mb-3">🚫</div>
         <p className="font-extrabold text-gray-900 mb-1">Nominations are closed</p>
         <p className="text-gray-500 text-sm mb-6">
@@ -102,7 +102,7 @@ export default function NominatePage() {
   };
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--background)' }}>
+    <div className="min-h-dvh pb-24 lg:pb-8" style={{ backgroundColor: 'var(--background)' }}>
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3">
         <button
@@ -145,7 +145,7 @@ export default function NominatePage() {
         {/* Nominee details */}
         <div>
           <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
-            Nominee's Full Name
+            Nominee&rsquo;s Full Name
           </label>
           <input
             type="text"

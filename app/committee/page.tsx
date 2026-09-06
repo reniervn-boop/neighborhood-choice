@@ -11,10 +11,15 @@ import AnnouncementForm from '@/components/committee/AnnouncementForm';
 import AlertForm from '@/components/committee/AlertForm';
 import NewsletterManager from '@/components/committee/NewsletterManager';
 import FaultReportsManager from '@/components/committee/FaultReportsManager';
+import DocumentManager from '@/components/committee/DocumentManager';
+import EscalationsManager from '@/components/committee/EscalationsManager';
+import MembersManager from '@/components/committee/MembersManager';
+import ListingsManager from '@/components/committee/ListingsManager';
+import RequestsManager from '@/components/committee/RequestsManager';
 import { seedNewsletter2026 } from '@/lib/data/seedFunctions';
 import { createNewsletter } from '@/lib/services/newsletterService';
 
-type Tab = 'announcement' | 'alert' | 'agm' | 'finance' | 'newsletter' | 'reports';
+type Tab = 'announcement' | 'alert' | 'agm' | 'finance' | 'newsletter' | 'reports' | 'documents' | 'escalations' | 'members' | 'prospectus' | 'requests';
 
 export default function CommitteePage() {
   const router = useRouter();
@@ -59,13 +64,18 @@ export default function CommitteePage() {
     { id: 'announcement', label: 'Announcement', icon: '📢' },
     { id: 'alert',        label: 'Alert',        icon: '🚨' },
     { id: 'newsletter',   label: 'Newsletter',   icon: '📰' },
+    { id: 'documents',    label: 'Documents',    icon: '📁' },
     { id: 'reports',      label: 'Faults',       icon: '🛠️' },
+    { id: 'escalations',  label: 'Escalations',  icon: '⚡' },
+    { id: 'members',      label: 'Members & BOD', icon: '👥' },
+    { id: 'prospectus',   label: 'Prospectus',   icon: '🏘️' },
+    { id: 'requests',     label: 'Requests',     icon: '📥' },
     { id: 'agm',          label: 'AGM',          icon: '🗳' },
     { id: 'finance',      label: 'Finance',      icon: '💰' },
   ];
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--background)' }}>
+    <div className="min-h-dvh pb-24 lg:pb-8" style={{ backgroundColor: 'var(--background)' }}>
       <AppHeader
         title="Committee Panel"
         showBack
@@ -81,8 +91,8 @@ export default function CommitteePage() {
       />
 
       {/* Tab bar */}
-      <div className="bg-white border-b border-gray-100 px-4">
-        <div className="flex gap-1 overflow-x-auto py-2" style={{ scrollbarWidth: 'none' }}>
+      <div className="bg-white border-b border-gray-100 px-4 lg:px-8">
+        <div className="max-w-5xl mx-auto flex gap-1 overflow-x-auto py-2" style={{ scrollbarWidth: 'none' }}>
           {TABS.map((t) => (
             <button
               key={t.id}
@@ -99,7 +109,7 @@ export default function CommitteePage() {
         </div>
       </div>
 
-      <div className="px-4 py-5">
+      <div className="max-w-5xl mx-auto px-4 lg:px-8 py-5">
         {/* Announcement tab */}
         {tab === 'announcement' && (
           <>
@@ -199,10 +209,29 @@ export default function CommitteePage() {
           <NewsletterManager userId={user.uid} userName={user.name} />
         )}
 
+        {/* Documents tab */}
+        {tab === 'documents' && (
+          <DocumentManager userId={user.uid} userName={user.name} />
+        )}
+
         {/* Fault Reports tab */}
         {tab === 'reports' && (
           <FaultReportsManager userId={user.uid} userName={user.name} />
         )}
+
+        {/* Escalations tab */}
+        {tab === 'escalations' && <EscalationsManager />}
+
+        {/* Members & BOD tab */}
+        {tab === 'members' && (
+          <MembersManager currentUserId={user.uid} isSuperAdmin={isSuperAdmin} />
+        )}
+
+        {/* Prospectus tab */}
+        {tab === 'prospectus' && <ListingsManager userId={user.uid} />}
+
+        {/* Requests tab */}
+        {tab === 'requests' && <RequestsManager userId={user.uid} />}
 
         {/* AGM tab */}
         {tab === 'agm' && (

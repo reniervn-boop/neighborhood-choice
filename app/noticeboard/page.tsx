@@ -53,7 +53,7 @@ export default function NoticeboardPage() {
     filter === 'All' ? announcements : announcements.filter((a) => a.category === filter);
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--background)' }}>
+    <div className="min-h-dvh pb-24 lg:pb-8" style={{ backgroundColor: 'var(--background)' }}>
       <AppHeader
         title="Noticeboard"
         showBrand
@@ -73,7 +73,7 @@ export default function NoticeboardPage() {
       {alerts.length > 0 && <AlertsTicker alerts={alerts} />}
 
       {/* ── ANNOUNCEMENTS ──────────────────────────────────────────────────── */}
-      <div className="px-4 mt-4">
+      <div className="max-w-lg lg:max-w-4xl mx-auto px-4 lg:px-8 mt-4">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Announcements</h2>
         </div>
@@ -99,7 +99,7 @@ export default function NoticeboardPage() {
         </div>
 
         {/* Announcement list */}
-        <div className="space-y-3 mt-1">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-1">
           {boardLoading && (
             <div className="text-center py-10 text-gray-400 text-sm">Loading…</div>
           )}
@@ -117,7 +117,7 @@ export default function NoticeboardPage() {
       </div>
 
       {/* ── NEWSLETTERS ────────────────────────────────────────────────────── */}
-      <div className="px-4 mt-8 mb-2">
+      <div className="max-w-lg lg:max-w-4xl mx-auto px-4 lg:px-8 mt-8 mb-2">
         {/* Section divider */}
         <div className="flex items-center gap-3 mb-4">
           <div className="flex-1 h-px bg-gray-200" />
@@ -153,7 +153,7 @@ export default function NoticeboardPage() {
       {selected && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
           <div className="absolute inset-0 bg-black/60" onClick={() => setSelected(null)} />
-          <div className="relative w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+          <div className="relative w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl max-h-[90dvh] overflow-y-auto sheet-safe">
             {/* Drag handle */}
             <div className="flex justify-center pt-3 pb-1">
               <div className="w-10 h-1 bg-gray-200 rounded-full" />

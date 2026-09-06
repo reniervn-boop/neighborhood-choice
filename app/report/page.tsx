@@ -27,7 +27,14 @@ const CATEGORIES: { value: ReportCategory; icon: string; color: string }[] = [
   { value: 'Traffic Light',icon: '🚦', color: '#E8F5E9' },
   { value: 'Pavement',     icon: '🛤️', color: '#F3E5F5' },
   { value: 'Other',        icon: '📌', color: '#F5F5F5' },
+  // Community improvements — earn points for uplifting the suburb
+  { value: 'Pavement Care',   icon: '🌱', color: '#E8F5E9' },
+  { value: 'Poster Removal',  icon: '🪧', color: '#E8F5E9' },
+  { value: 'Garden/Greening', icon: '🌸', color: '#E8F5E9' },
 ];
+
+/** Categories that are positive contributions rather than faults. */
+const REWARD_VALUES: ReportCategory[] = ['Pavement Care', 'Poster Removal', 'Garden/Greening'];
 
 export default function ReportPage() {
   const { user, loading } = useAuth();
@@ -139,17 +146,17 @@ export default function ReportPage() {
     const authority = getAuthorityForCategory(submittedReport.category);
 
     const copyScript = () => {
-      navigator.clipboard.writeText(formatCallerScript(submittedReport, authority));
+      navigator.clipboard.writeText(formatCallerScript(submittedReport));
       setScriptCopied(true);
       setTimeout(() => setScriptCopied(false), 2500);
       toast.success('Script copied!');
     };
 
     return (
-      <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--background)' }}>
+      <div className="min-h-dvh pb-24 lg:pb-8" style={{ backgroundColor: 'var(--background)' }}>
         <AppHeader title="Report Submitted" />
 
-        <main className="max-w-lg mx-auto px-4 py-6 space-y-4">
+        <main className="max-w-lg lg:max-w-4xl mx-auto px-4 lg:px-8 py-6 space-y-4">
           {/* Success card */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-center">
             <div
@@ -164,7 +171,18 @@ export default function ReportPage() {
             </p>
           </div>
 
-          {/* Municipality next step */}
+          {/* Reward submissions: no municipality step — just a thank-you */}
+          {REWARD_VALUES.includes(submittedReport.category) && (
+            <div className="bg-green-50 rounded-2xl border border-green-100 p-4 text-center">
+              <p className="text-sm text-green-700 leading-relaxed">
+                🌟 Thank you for uplifting {`SX7`}! Once the committee approves your
+                contribution you&apos;ll earn points and climb the leaderboard.
+              </p>
+            </div>
+          )}
+
+          {/* Municipality next step (faults only) */}
+          {!REWARD_VALUES.includes(submittedReport.category) && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div
               className="px-4 py-3 flex items-center gap-3"
@@ -193,7 +211,7 @@ export default function ReportPage() {
                       </button>
                     </div>
                     <p className="text-xs text-gray-700 leading-relaxed font-mono whitespace-pre-wrap">
-                      {formatCallerScript(submittedReport, authority)}
+                      {formatCallerScript(submittedReport)}
                     </p>
                   </div>
 
@@ -248,6 +266,7 @@ export default function ReportPage() {
               )}
             </div>
           </div>
+          )}
 
           <button
             onClick={() => router.push('/')}
@@ -272,10 +291,10 @@ export default function ReportPage() {
   };
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--background)' }}>
+    <div className="min-h-dvh pb-24 lg:pb-8" style={{ backgroundColor: 'var(--background)' }}>
       <AppHeader title="Report an Issue" showBack backHref="/" />
 
-      <main className="max-w-lg mx-auto px-4 py-4">
+      <main className="max-w-lg lg:max-w-4xl mx-auto px-4 lg:px-8 py-4">
         {/* Category picker */}
         <div className="mb-4">
           <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Category</label>
@@ -301,6 +320,15 @@ export default function ReportPage() {
               </button>
             ))}
           </div>
+          {REWARD_VALUES.includes(category) && (
+            <div className="mt-2 p-3 rounded-xl bg-green-50 border border-green-100">
+              <p className="text-xs text-green-700 leading-snug">
+                🌟 <strong>Community reward:</strong> uplifting the suburb earns points. Add a
+                photo of your tidy pavement, cleared lamp post or garden — the committee
+                approves it and awards your points. Sponsored monthly prizes for top contributors!
+              </p>
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

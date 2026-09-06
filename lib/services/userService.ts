@@ -91,6 +91,52 @@ export async function verifyUser(userId: string): Promise<void> {
   });
 }
 
+/** All committee / BOD / admin members (for the governance roster). */
+export async function getStaffMembers(): Promise<User[]> {
+  const q = query(
+    collection(db, 'users'),
+    where('role', 'in', ['committee', 'super_admin', 'admin']),
+  );
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((d) => d.data() as User);
+}
+
+/** All members — used by the Master Residents Register. */
+export async function getAllUsers(limitCount = 1000): Promise<User[]> {
+  const q = query(collection(db, 'users'), orderBy('name'), limit(limitCount));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((d) => d.data() as User);
+}
+
+/** Assign role, portfolio and BOD membership to a user (committee management). */
+export async function updateUserGovernance(
+  userId: string,
+  data: { role?: User['role']; portfolio?: string; isBoardMember?: boolean },
+): Promise<void> {
+  const payload: Record<string, unknown> = {};
+  if (data.role !== undefined) payload.role = data.role;
+  if (data.portfolio !== undefined) payload.portfolio = data.portfolio;
+  if (data.isBoardMember !== undefined) payload.isBoardMember = data.isBoardMember;
+  await updateDoc(doc(db, 'users', userId), payload);
+}
+
+/** Update a member's membership status / voting rights (Constitution enforcement). */
+export async function updateMembershipStatus(
+  userId: string,
+  data: {
+    membershipStatus?: User['membershipStatus'];
+    canVote?: boolean;
+    canStandForOffice?: boolean;
+    lastFeePaymentDate?: number;
+    feeDueDate?: number;
+  },
+): Promise<void> {
+  const payload = Object.fromEntries(
+    Object.entries(data).filter(([, v]) => v !== undefined),
+  );
+  await updateDoc(doc(db, 'users', userId), payload);
+}
+
 export async function getUserByInviteCode(inviteCode: string): Promise<User | null> {
   const q = query(collection(db, 'users'), where('inviteCode', '==', inviteCode));
   const snapshot = await getDocs(q);

@@ -12,15 +12,21 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import { Report } from '@/lib/types';
+import { defaultSeverity, computeSlaDueAt } from '@/lib/services/slaService';
 
 export async function createReport(
   userId: string,
   reportData: Omit<Report, 'id' | 'createdAt' | 'userId'>
 ): Promise<string> {
+  const createdAt = Timestamp.now().toMillis();
+  const severity = reportData.severity ?? defaultSeverity(reportData.category);
+  const slaDueAt = computeSlaDueAt({ category: reportData.category, severity, createdAt });
   const reportRef = await addDoc(collection(db, 'reports'), {
     ...reportData,
     userId,
-    createdAt: Timestamp.now().toMillis(),
+    severity,
+    slaDueAt,
+    createdAt,
   });
   return reportRef.id;
 }
@@ -59,15 +65,35 @@ export async function getPendingReports(): Promise<Report[]> {
 export async function approveReport(
   reportId: string,
   adminId: string,
-  pointsAwarded: number
+  pointsAwarded: number,
+  report?: Pick<Report, 'category' | 'severity'>
 ): Promise<void> {
   const reportRef = doc(db, 'reports', reportId);
-  await updateDoc(reportRef, {
+  const approvedAt = Timestamp.now().toMillis();
+  const update: Record<string, unknown> = {
     status: 'approved',
-    approvedAt: Timestamp.now().toMillis(),
+    approvedAt,
     approvedBy: adminId,
     points: pointsAwarded,
-  });
+  };
+  // Re-anchor the SLA clock to approval time once the fault is confirmed.
+  if (report) {
+    update.slaDueAt = computeSlaDueAt({ category: report.category, severity: report.severity, createdAt: approvedAt, approvedAt });
+  }
+  await updateDoc(reportRef, update);
+}
+
+/** Escalate a report to the Ward Councillor group (manual or auto). */
+export async function escalateReport(
+  reportId: string,
+  note?: string
+): Promise<void> {
+  const reportRef = doc(db, 'reports', reportId);
+  const update: Record<string, unknown> = {
+    escalatedToWardAt: Timestamp.now().toMillis(),
+  };
+  if (note?.trim()) update.escalationNote = note.trim();
+  await updateDoc(reportRef, update);
 }
 
 export async function rejectReport(reportId: string, adminId: string): Promise<void> {

@@ -44,6 +44,18 @@ function toProject(id: string, data: Record<string, unknown>): CommunityProject 
         : (data.completedAt as number | undefined),
     paymentMethods: (data.paymentMethods as CommunityProject['paymentMethods']) ?? [],
     paymentConfig: data.paymentConfig as Record<string, string> | undefined,
+    scope: data.scope as string | undefined,
+    estimatedDurationDays: data.estimatedDurationDays as number | undefined,
+    startDate:
+      data.startDate instanceof Timestamp
+        ? data.startDate.toMillis()
+        : (data.startDate as number | undefined),
+    endDate:
+      data.endDate instanceof Timestamp
+        ? data.endDate.toMillis()
+        : (data.endDate as number | undefined),
+    progressPercent: data.progressPercent as number | undefined,
+    progressNote: data.progressNote as string | undefined,
   };
 }
 
@@ -74,8 +86,12 @@ function toDonation(id: string, data: Record<string, unknown>): Donation {
 export async function createProject(
   data: Omit<CommunityProject, 'id'>,
 ): Promise<string> {
+  // Firestore rejects undefined — strip empty optional fields before writing.
+  const clean = Object.fromEntries(
+    Object.entries(data).filter(([, v]) => v !== undefined),
+  );
   const ref = await addDoc(collection(db, PROJECTS_COL), {
-    ...data,
+    ...clean,
     raisedAmountCents: 0,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),

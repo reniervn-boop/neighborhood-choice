@@ -23,6 +23,13 @@ export interface CreateProjectInput {
   coverImageUrl?: string;
   createdBy: string;
   paymentConfig?: Record<string, string>;
+  // Planning metadata (Brainmap: scope, budget, duration, start/end, progress)
+  scope?: string;
+  estimatedDurationDays?: number;
+  startDate?: number;
+  endDate?: number;
+  progressPercent?: number;
+  progressNote?: string;
 }
 
 export async function createCommunityProject(
@@ -45,9 +52,26 @@ export async function createCommunityProject(
     coverImageUrl: input.coverImageUrl,
     createdBy: input.createdBy,
     createdAt: Date.now(),
+    scope: input.scope?.trim() || undefined,
+    estimatedDurationDays: input.estimatedDurationDays,
+    startDate: input.startDate,
+    endDate: input.endDate,
+    progressPercent: input.progressPercent,
+    progressNote: input.progressNote?.trim() || undefined,
   });
 
   return { id };
+}
+
+/** Update planning metadata / progress on an existing project. */
+export async function updateCommunityProject(
+  id: string,
+  data: Partial<Pick<CommunityProject,
+    'title' | 'description' | 'category' | 'status' | 'targetAmountCents' |
+    'scope' | 'estimatedDurationDays' | 'startDate' | 'endDate' |
+    'progressPercent' | 'progressNote' | 'coverImageUrl'>>,
+): Promise<void> {
+  await updateProject(id, data);
 }
 
 export async function fetchActiveProjects(): Promise<CommunityProject[]> {

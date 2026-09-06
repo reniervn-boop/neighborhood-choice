@@ -1,4 +1,5 @@
 import { ReportCategory } from '@/lib/types';
+import { WARD_LABEL, WARD_COUNCILLOR_LABEL } from '@/lib/data/wardConfig';
 
 // ─── Authority Definitions ────────────────────────────────────────────────────
 
@@ -21,6 +22,12 @@ export interface Authority {
   icon: string;
   description: string;
   methodNote: string;
+  /**
+   * Whether this fault is handled by the City of Joburg ('municipal') or
+   * Gauteng Provincial Government ('provincial'). Brainmap: provincial roads
+   * and robots are logged separately via the PotholeFix app.
+   */
+  jurisdiction?: 'municipal' | 'provincial';
 }
 
 export const AUTHORITIES: Authority[] = [
@@ -121,6 +128,27 @@ export const AUTHORITIES: Authority[] = [
     description: 'Revenue, billing, and general City of Joburg services.',
     methodNote: 'Call 0860 562 874 for billing and revenue queries, or use the e-Joburg online portal for self-service.',
   },
+
+  // ── Gauteng Provincial Roads (PotholeFix) ─────────────────────────────────
+  // Provincial roads and traffic signals ("robots") on provincial routes are
+  // NOT handled by the City — they are logged with the Gauteng Government via
+  // the PotholeFix app.
+  {
+    id: 'GautengProvincial',
+    name: 'Gauteng Dept. of Roads & Transport',
+    shortName: 'Gauteng (PotholeFix)',
+    method: 'portal',
+    portalUrl: 'https://www.potholefixgauteng.co.za/',
+    portalLabel: 'PotholeFix Gauteng',
+    phone: '0800203712',
+    phoneAlt: '0800 203 712 (Gauteng hotline)',
+    categories: [],               // selected manually when the road is provincial
+    color: '#00695C',
+    icon: '🛞',
+    description: 'Potholes and traffic signals ("robots") on PROVINCIAL roads (e.g. major arterials). Logged via the PotholeFix app, not the City.',
+    methodNote: 'For provincial roads and robots, log your fault in the PotholeFix Gauteng app or portal. Use this only if the road is a provincial route — otherwise use JRA.',
+    jurisdiction: 'provincial',
+  },
 ];
 
 /** Returns the best authority for a given report category */
@@ -133,7 +161,7 @@ export function getAuthorityForCategory(category: ReportCategory): Authority {
 
 // ─── Escalation Format ────────────────────────────────────────────────────────
 
-export const WARD_COUNCILLOR = 'Ralf Bitkau — Ward 101';
+export const WARD_COUNCILLOR = WARD_COUNCILLOR_LABEL;
 
 /** Blank escalation template to fill in after getting a reference number */
 export function formatEscalationTemplate(report?: ReportSummary): string {
@@ -179,7 +207,7 @@ export function formatEmailBody(report: ReportSummary, authority: Authority): st
 
   return `Dear ${authority.shortName},
 
-We are writing on behalf of our Neighbourhood Watch community (Ward 101) to report a civic issue requiring your urgent attention.
+We are writing on behalf of our Neighbourhood Watch community (${WARD_LABEL}) to report a civic issue requiring your urgent attention.
 
 FAULT DETAILS
 ─────────────────────────────────────────────────
@@ -211,13 +239,13 @@ Issue/Problem Statement: ${report.category} — ${report.title}
 Ward Councillor: ${WARD_COUNCILLOR}
 
 Kind regards,
-Neighbourhood Watch — Ward 101 Community App
+Neighbourhood Watch — ${WARD_LABEL} Community App
 Internal Ref: ${report.id}
 `;
 }
 
 export function formatEmailSubject(report: ReportSummary): string {
-  return `[Ward 101] Fault Report: ${report.category} — ${report.location.address || `GPS: ${report.location.lat}, ${report.location.lng}`}`;
+  return `[${WARD_LABEL}] Fault Report: ${report.category} — ${report.location.address || `GPS: ${report.location.lat}, ${report.location.lng}`}`;
 }
 
 /** Generates a mailto: deep link with pre-filled email */
@@ -233,9 +261,9 @@ export function buildDialerLink(authority: Authority): string {
 }
 
 /** Pre-written phone script to read out to the call centre agent */
-export function formatCallerScript(report: ReportSummary, authority: Authority): string {
+export function formatCallerScript(report: ReportSummary): string {
   const mapsUrl = `https://maps.google.com?q=${report.location.lat},${report.location.lng}`;
-  return `"Good day. I'd like to log a fault for Ward 101.
+  return `"Good day. I'd like to log a fault for ${WARD_LABEL}.
 
 Category:  ${report.category}
 Issue:     ${report.title}${report.description ? `\nDetails:   ${report.description}` : ''}

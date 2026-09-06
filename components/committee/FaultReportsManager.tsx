@@ -23,11 +23,15 @@ const CATEGORY_ICON: Record<string, string> = {
   'Traffic Light': '🚦',
   Pavement: '🛤️',
   Other: '⚠️',
+  'Pavement Care': '🌱',
+  'Poster Removal': '🪧',
+  'Garden/Greening': '🌸',
 };
 
 const ALL_CATEGORIES: ReportCategory[] = [
   'Pothole', 'Streetlight', 'Graffiti', 'Water Main',
   'Stormwater', 'Traffic Light', 'Pavement', 'Other',
+  'Pavement Care', 'Poster Removal', 'Garden/Greening',
 ];
 
 function fmtDate(ms: number) {
@@ -366,7 +370,7 @@ export default function FaultReportsManager({ userId }: Props) {
             className="absolute inset-0 bg-black/60"
             onClick={() => setSelected(null)}
           />
-          <div className="relative mt-auto bg-white rounded-t-3xl max-h-[88vh] overflow-y-auto">
+          <div className="relative mt-auto bg-white rounded-t-3xl max-h-[88dvh] overflow-y-auto sheet-safe">
             {/* Drag handle */}
             <div className="flex justify-center pt-3 pb-1">
               <div className="w-10 h-1 bg-gray-200 rounded-full" />

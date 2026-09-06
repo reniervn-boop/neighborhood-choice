@@ -28,7 +28,7 @@ export default function VotePage() {
   if (!canVoteInMeeting(user)) {
     const status = getMembershipStatusSummary(user);
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
+      <div className="min-h-dvh flex flex-col items-center justify-center px-6 text-center">
         <div className="text-5xl mb-3">{status.icon}</div>
         <p className="font-extrabold text-gray-900 mb-1">Cannot Vote</p>
         <p className="text-gray-500 text-sm mb-6 leading-relaxed">
@@ -58,7 +58,7 @@ export default function VotePage() {
 
   if (!agm || agm.status !== 'voting_open') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
+      <div className="min-h-dvh flex flex-col items-center justify-center px-6 text-center">
         <div className="text-5xl mb-3">🚫</div>
         <p className="font-extrabold text-gray-900 mb-1">Voting is not open</p>
         <p className="text-gray-500 text-sm mb-6">
@@ -77,7 +77,7 @@ export default function VotePage() {
 
   if (!user.physicalAddress) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
+      <div className="min-h-dvh flex flex-col items-center justify-center px-6 text-center">
         <div className="text-5xl mb-3">🏠</div>
         <p className="font-extrabold text-gray-900 mb-2">Physical address required</p>
         <p className="text-gray-500 text-sm mb-6 leading-relaxed">
@@ -134,7 +134,7 @@ export default function VotePage() {
   };
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--background)' }}>
+    <div className="min-h-dvh pb-24 lg:pb-8" style={{ backgroundColor: 'var(--background)' }}>
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3">
         <button

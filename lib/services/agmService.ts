@@ -16,7 +16,6 @@ import {
 import {
   castVote,
   getVotesForPosition,
-  getVotesForAGM,
   hasVoted,
   tallyVotes,
 } from '@/lib/repositories/voteRepository';
@@ -25,7 +24,7 @@ import {
   validateNomination,
   validateVote,
 } from '@/lib/validation/agmValidation';
-import { AGMWindow, Nomination, Vote } from '@/lib/types';
+import { AGMWindow, Nomination } from '@/lib/types';
 
 // ─── AGM Windows ──────────────────────────────────────────────────────────────
 

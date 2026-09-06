@@ -88,6 +88,47 @@ export default function ProjectCard({ project, onDonate }: Props) {
           />
         </div>
 
+        {/* Delivery progress (committee-reported, distinct from funding) */}
+        {typeof project.progressPercent === 'number' && (
+          <div className="mt-3">
+            <div className="mb-1 flex items-center justify-between text-xs">
+              <span className="font-bold text-gray-700">Delivery progress</span>
+              <span className="text-gray-400">{project.progressPercent}%</span>
+            </div>
+            <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+              <div
+                className="h-2 rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(100, project.progressPercent)}%`, backgroundColor: '#1565C0' }}
+              />
+            </div>
+            {project.progressNote && (
+              <p className="text-[11px] text-gray-500 mt-1 leading-snug">{project.progressNote}</p>
+            )}
+          </div>
+        )}
+
+        {/* Scope + schedule metadata */}
+        {(project.scope || project.startDate || project.endDate || project.estimatedDurationDays) && (
+          <div className="mt-3 rounded-xl bg-gray-50 border border-gray-100 p-3 space-y-1.5">
+            {project.scope && (
+              <p className="text-xs text-gray-600 leading-relaxed">
+                <span className="font-bold text-gray-700">Scope: </span>{project.scope}
+              </p>
+            )}
+            {(project.startDate || project.endDate) && (
+              <p className="text-[11px] text-gray-500">
+                📅{' '}
+                {project.startDate ? new Date(project.startDate).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                {' → '}
+                {project.endDate ? new Date(project.endDate).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+              </p>
+            )}
+            {project.estimatedDurationDays ? (
+              <p className="text-[11px] text-gray-500">⏱ Estimated duration: {project.estimatedDurationDays} days</p>
+            ) : null}
+          </div>
+        )}
+
         {/* Donate button */}
         {canDonate && onDonate && (
           <button

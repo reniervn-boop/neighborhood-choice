@@ -31,10 +31,10 @@ export default function EventsPage() {
   }
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--background)' }}>
+    <div className="min-h-dvh pb-24 lg:pb-8" style={{ backgroundColor: 'var(--background)' }}>
       <AppHeader title="Events" showBrand />
 
-      <div className="max-w-lg mx-auto px-4 py-5">
+      <div className="max-w-lg lg:max-w-4xl mx-auto px-4 lg:px-8 py-5">
         <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
           Upcoming &amp; Active Events
         </h2>

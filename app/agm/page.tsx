@@ -31,7 +31,7 @@ export default function AGMPage() {
   }
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--background)' }}>
+    <div className="min-h-dvh pb-24 lg:pb-8" style={{ backgroundColor: 'var(--background)' }}>
       <AppHeader title="AGM / Governance" showBack backHref="/" />
 
       <div className="px-4 py-4 space-y-4">
