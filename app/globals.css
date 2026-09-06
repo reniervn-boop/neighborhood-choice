@@ -176,10 +176,44 @@
 
 /* ─── Base ───────────────────────────────────────────────────────────────────── */
 html {
-  /* Stop iOS/Android from inflating body text in narrow columns, which makes
-     type sizes inconsistent between blocks on the same screen. */
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
+  /*
+   * Tailwind's preflight pins this to 100%, which on Chrome for Android also
+   * cancels the reader's own "Text scaling" accessibility setting — the page
+   * renders at 100% no matter what they have chosen, so anyone who has scaled
+   * their text up sees a UI that looks too small and reaches for page zoom.
+   * iOS Safari has no equivalent setting for web content, which is why the same
+   * build looks correct on an iPhone and small on Android.
+   *
+   * `auto` hands that choice back to the reader. Chrome only auto-inflates text
+   * on pages without a proper viewport meta, and ours sets width=device-width,
+   * so this does not reintroduce font boosting.
+   */
+  -webkit-text-size-adjust: auto;
+  text-size-adjust: auto;
+}
+
+/*
+ * Fluid scale for wide phones.
+ *
+ * The layout is fluid but the type and icon scale was not: between a 360px and
+ * a 480px viewport a card grows from 328px to 448px while the icon stays 44px,
+ * the emoji stays 20px and the label stays 14px. On the wider Android viewports
+ * that leaves the content marooned in whitespace and reading small.
+ *
+ * Scaling the root font size scales every rem-based Tailwind utility with it —
+ * type, padding, gaps, icon boxes and radii together — so proportions hold.
+ * The curve starts at 380px so narrow phones are untouched and a 390px iPhone
+ * moves by about 2% — imperceptible, and that rendering is already correct. A
+ * 412px Android gains about 8%, a 450px+ viewport about 19%. It stops at 600px,
+ * above which the max-w-lg container caps the content width anyway.
+ *
+ * 4.21vw is chosen so the ramp meets 16px exactly at 380px; changing the start
+ * width means recomputing it (16 / start * 100) or the scale jumps at the edge.
+ */
+@media (min-width: 380px) and (max-width: 600px) {
+  html {
+    font-size: clamp(16px, 4.21vw, 19px);
+  }
 }
 
 body {
