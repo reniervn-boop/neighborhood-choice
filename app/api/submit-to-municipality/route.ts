@@ -7,6 +7,7 @@ import {
   ReportSummary,
 } from '@/lib/services/municipalityService';
 import { ReportCategory } from '@/lib/types';
+import { verifyRequest } from '@/lib/server/verifyIdToken';
 
 // Lazily initialise so the build doesn't fail when RESEND_API_KEY isn't set
 let resend: import('resend').Resend | null = null;
@@ -22,8 +23,20 @@ function getResend() {
  * Requires RESEND_API_KEY + RESEND_FROM_EMAIL in .env.local.
  *
  * Body: { report: ReportSummary, authorityId?: string }
+ *
+ * Requires a Firebase ID token: this route sends mail from the Association's
+ * own address to City of Johannesburg departments, so leaving it open would
+ * hand anyone on the internet a spam relay wearing SX7RA's name.
  */
 export async function POST(request: NextRequest) {
+  const user = await verifyRequest(request);
+  if (!user) {
+    return NextResponse.json(
+      { error: 'You must be signed in to submit a report to the municipality.' },
+      { status: 401 },
+    );
+  }
+
   try {
     const { report } = (await request.json()) as { report: ReportSummary };
 

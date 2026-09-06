@@ -6,13 +6,14 @@ import { useAuth } from '@/lib/hooks/useAuth';
 import { useFinance } from '@/lib/hooks/useFinance';
 import ProjectCard from '@/components/finance/ProjectCard';
 import PaymentMethodSheet from '@/components/finance/PaymentMethodSheet';
+import FundingOverview from '@/components/finance/FundingOverview';
 import AppHeader from '@/components/AppHeader';
 import LoadingScreen from '@/components/LoadingScreen';
 import { CommunityProject } from '@/lib/types';
 
 export default function FinancePage() {
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, isCommittee } = useAuth();
   const { projects, loading, refresh } = useFinance();
   const [donatingTo, setDonatingTo] = useState<CommunityProject | null>(null);
 
@@ -23,7 +24,7 @@ export default function FinancePage() {
   const otherProjects = projects.filter((p) => p.status !== 'active');
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--background)' }}>
+    <div className="min-h-dvh pb-24 lg:pb-8" style={{ backgroundColor: 'var(--background)' }}>
       <AppHeader
         title="Community Finance"
         showBack
@@ -39,7 +40,7 @@ export default function FinancePage() {
         }
       />
 
-      <div className="px-4 py-4 space-y-4">
+      <div className="max-w-lg lg:max-w-5xl mx-auto px-4 lg:px-8 py-4 space-y-4">
         {loading && <div className="text-center py-12 text-gray-400 text-sm">Loading…</div>}
 
         {!loading && activeProjects.length === 0 && otherProjects.length === 0 && (
@@ -50,18 +51,22 @@ export default function FinancePage() {
           </div>
         )}
 
+        {isCommittee && projects.length > 0 && <FundingOverview projects={projects} />}
+
         {activeProjects.length > 0 && (
           <>
             <h2 className="font-extrabold text-gray-700 text-sm uppercase tracking-wider">
               Active Projects
             </h2>
-            {activeProjects.map((p) => (
-              <ProjectCard
-                key={p.id}
-                project={p}
-                onDonate={() => setDonatingTo(p)}
-              />
-            ))}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {activeProjects.map((p) => (
+                <ProjectCard
+                  key={p.id}
+                  project={p}
+                  onDonate={() => setDonatingTo(p)}
+                />
+              ))}
+            </div>
           </>
         )}
 
@@ -70,9 +75,11 @@ export default function FinancePage() {
             <h2 className="font-extrabold text-gray-700 text-sm uppercase tracking-wider mt-4">
               Past Projects
             </h2>
-            {otherProjects.map((p) => (
-              <ProjectCard key={p.id} project={p} />
-            ))}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {otherProjects.map((p) => (
+                <ProjectCard key={p.id} project={p} />
+              ))}
+            </div>
           </>
         )}
       </div>
@@ -81,7 +88,6 @@ export default function FinancePage() {
       {donatingTo && (
         <PaymentMethodSheet
           project={donatingTo}
-          userId={user.uid}
           donorName={user.name}
           onClose={() => setDonatingTo(null)}
           onSuccess={() => { setDonatingTo(null); refresh(); }}

@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Anton, Creepster } from "next/font/google";
 import { Providers } from "./providers";
 import BottomNav from "@/components/BottomNav";
+import DesktopNav from "@/components/DesktopNav";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,10 +28,14 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
 };
 
-export const viewport = {
+export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
+  // Required for env(safe-area-inset-*) to resolve to anything but 0 on iOS.
+  // Without it the translucent status bar overlaps the header and the home
+  // indicator overlaps the bottom nav once the app is installed to the homescreen.
+  viewportFit: "cover",
   themeColor: "#060709",
 };
 
@@ -47,10 +52,13 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="SX7RA" />
       </head>
-      <body className="min-h-full flex flex-col" style={{ backgroundColor: 'var(--background)' }}>
+      <body className="min-h-full" style={{ backgroundColor: 'var(--background)' }}>
         <Providers>
-          {children}
-          <BottomNav />
+          <DesktopNav />
+          <div className="lg:pl-64 flex flex-col min-h-dvh">
+            {children}
+            <BottomNav />
+          </div>
         </Providers>
       </body>
     </html>

@@ -36,7 +36,7 @@ export default function AdminDashboard() {
     if (user?.role === 'admin') loadDashboard();
   }, [user, loading, router]);
 
-  const loadDashboard = async () => {
+  async function loadDashboard() {
     try {
       const [pending, approved, top] = await Promise.all([
         getPendingReports(),
@@ -51,12 +51,12 @@ export default function AdminDashboard() {
     } finally {
       setLoadingData(false);
     }
-  };
+  }
 
   const handleApprove = async (report: Report) => {
     setApprovingId(report.id);
     try {
-      await approveReport(report.id, user!.uid, 15);
+      await approveReport(report.id, user!.uid, 15, { category: report.category, severity: report.severity });
       await processReportApproval(report.id, report.userId);
       toast.success('Report approved! Points awarded.');
       setPendingReports((prev) => prev.filter((r) => r.id !== report.id));
@@ -93,7 +93,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const onSubmitted = (authorityId: string, method: string) => {
+  const onSubmitted = () => {
     if (selectedReport) {
       getSubmissionsForReport(selectedReport.id).then((subs) =>
         setReportSubmissions((prev) => ({ ...prev, [selectedReport!.id]: subs }))
@@ -121,12 +121,12 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--background)' }}>
+    <div className="min-h-dvh pb-24 lg:pb-8" style={{ backgroundColor: 'var(--background)' }}>
       <AppHeader title="Admin Dashboard" />
 
       {/* Stats strip */}
       <div style={{ backgroundColor: 'var(--primary)' }} className="pb-5">
-        <div className="max-w-lg mx-auto px-4 grid grid-cols-3 gap-2 pt-2">
+        <div className="max-w-lg lg:max-w-4xl mx-auto px-4 lg:px-8 grid grid-cols-3 gap-2 pt-2">
           {[
             { value: pendingReports.length, label: 'Pending' },
             { value: approvedReports.length, label: 'Approved' },
@@ -140,7 +140,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <main className="max-w-lg mx-auto px-4 -mt-3">
+      <main className="max-w-lg lg:max-w-4xl mx-auto px-4 lg:px-8 -mt-3">
         {/* Tabs */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-1 flex gap-1 mb-4">
           {TABS.map((t) => (

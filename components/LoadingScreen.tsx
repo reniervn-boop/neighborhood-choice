@@ -11,7 +11,7 @@ export default function LoadingScreen({ message = 'Loading...' }: { message?: st
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ backgroundColor: 'var(--background)' }}>
+    <div className="min-h-dvh flex flex-col items-center justify-center px-6" style={{ backgroundColor: 'var(--background)' }}>
       <img
         src="/sx7ra-logo.svg"
         alt="SX7RA"

@@ -29,9 +29,9 @@ export default function AppHeader({
   return (
     <header
       style={{ backgroundColor: 'var(--brand-black)' }}
-      className="sticky top-0 z-40 text-white shadow-md"
+      className="sticky top-0 z-40 text-white shadow-md app-bar-safe"
     >
-      <div className="flex items-center justify-between px-4 py-3 max-w-lg mx-auto">
+      <div className="flex items-center justify-between px-4 lg:px-8 py-3 max-w-lg lg:max-w-none mx-auto">
         <div className="flex items-center gap-3 min-w-0">
           {showBack ? (
             <button

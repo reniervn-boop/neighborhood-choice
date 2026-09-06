@@ -5,6 +5,7 @@ import { CommunityProject, PaymentMethod } from '@/lib/types';
 import { formatZAR } from '@/lib/validation/financeValidation';
 import { getPaymentConfig } from '@/lib/services/financeService';
 import { toast } from 'react-hot-toast';
+import { auth } from '@/lib/firebase/config';
 
 const METHOD_LABELS: Record<PaymentMethod, { label: string; icon: string; description: string }> = {
   payfast: { label: 'PayFast', icon: '💳', description: 'Credit card, EFT, SnapScan & more' },
@@ -17,7 +18,6 @@ const PRESET_AMOUNTS = [100, 250, 500, 1000];
 
 interface Props {
   project: CommunityProject;
-  userId: string;
   donorName: string;
   onClose: () => void;
   onSuccess?: () => void;
@@ -25,7 +25,6 @@ interface Props {
 
 export default function PaymentMethodSheet({
   project,
-  userId,
   donorName,
   onClose,
   onSuccess,
@@ -45,13 +44,22 @@ export default function PaymentMethodSheet({
     setLoading(true);
 
     try {
-      // Create pending donation record
+      const idToken = await auth.currentUser?.getIdToken();
+      if (!idToken) {
+        toast.error('Your session has expired — please sign in again.');
+        return;
+      }
+
+      // Create pending donation record. The server takes the donor's identity
+      // from the token, not from this body.
       const res = await fetch('/api/payments/initiate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
         body: JSON.stringify({
           projectId: project.id,
-          userId,
           amountCents: cents,
           method,
           anonymous,
@@ -120,7 +128,7 @@ export default function PaymentMethodSheet({
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
-      <div className="relative w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl max-h-[90dvh] overflow-y-auto sheet-safe">
         <div className="flex justify-center pt-3 pb-1">
           <div className="w-10 h-1 bg-gray-200 rounded-full" />
         </div>
@@ -162,7 +170,7 @@ export default function PaymentMethodSheet({
                 className="w-full text-white font-bold py-3 rounded-xl text-sm"
                 style={{ backgroundColor: 'var(--primary)' }}
               >
-                Done — I've made the transfer
+                Done — I&rsquo;ve made the transfer
               </button>
             </>
           )}

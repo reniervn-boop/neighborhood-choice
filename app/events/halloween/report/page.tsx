@@ -109,7 +109,7 @@ export default function ReportSightingPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center">
+      <div className="min-h-[70dvh] flex items-center justify-center">
         <p className="text-gray-400 animate-pulse">Loading…</p>
       </div>
     );
@@ -117,7 +117,7 @@ export default function ReportSightingPage() {
 
   if (status === 'success') {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center px-4">
+      <div className="min-h-[70dvh] flex items-center justify-center px-4">
         <div className="text-center max-w-sm">
           <div className="text-6xl mb-4">📍</div>
           <h2

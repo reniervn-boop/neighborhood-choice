@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--primary)' }}>
+    <div className="min-h-dvh flex flex-col" style={{ backgroundColor: 'var(--primary)' }}>
       {/* Top bar */}
       <div className="flex items-center justify-between px-4 pt-6 pb-2">
         <Link

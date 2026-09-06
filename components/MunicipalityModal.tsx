@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { auth } from '@/lib/firebase/config';
 import {
-  Authority,
   ReportSummary,
   buildMailtoLink,
   buildDialerLink,
@@ -32,9 +32,19 @@ export default function MunicipalityModal({ report, userId, onClose, onSubmitted
   const handleSendEmail = async () => {
     setStep('sending');
     try {
+      const idToken = await auth.currentUser?.getIdToken();
+      if (!idToken) {
+        setStep('info');
+        toast('Please sign in again, then use “Open Email App” below.');
+        return;
+      }
+
       const res = await fetch('/api/submit-to-municipality', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
         body: JSON.stringify({ report }),
       });
       const data = await res.json();
@@ -110,7 +120,7 @@ export default function MunicipalityModal({ report, userId, onClose, onSubmitted
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
-      <div className="relative w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl max-h-[90dvh] overflow-y-auto sheet-safe">
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-1">
           <div className="w-10 h-1 bg-gray-200 rounded-full" />
@@ -250,7 +260,7 @@ export default function MunicipalityModal({ report, userId, onClose, onSubmitted
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Your script</p>
                   <button
-                    onClick={() => copyToClipboard(formatCallerScript(report, authority), 'Script')}
+                    onClick={() => copyToClipboard(formatCallerScript(report), 'Script')}
                     className="text-xs font-bold"
                     style={{ color: 'var(--primary)' }}
                   >
@@ -258,7 +268,7 @@ export default function MunicipalityModal({ report, userId, onClose, onSubmitted
                   </button>
                 </div>
                 <p className="text-xs text-gray-700 leading-relaxed font-mono whitespace-pre-wrap">
-                  {formatCallerScript(report, authority)}
+                  {formatCallerScript(report)}
                 </p>
               </div>
 

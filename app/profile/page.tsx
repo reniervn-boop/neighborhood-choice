@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { toast } from 'react-hot-toast';
 import AppHeader from '@/components/AppHeader';
 import LoadingScreen from '@/components/LoadingScreen';
+import MembershipActions from '@/components/profile/MembershipActions';
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   submitted:        { bg: '#FFF3E0', text: '#E65100', label: 'Submitted' },
@@ -45,6 +46,18 @@ export default function ProfilePage() {
   const [weeklyDigest, setWeeklyDigest] = useState(true);
   const [savingPrefs, setSavingPrefs] = useState(false);
 
+  async function loadReports() {
+    if (!user) return;
+    try {
+      const userReports = await getUserReports(user.uid);
+      setReports(userReports);
+    } catch (error) {
+      console.error('Failed to load reports:', error);
+    } finally {
+      setLoadingReports(false);
+    }
+  }
+
   useEffect(() => {
     if (!loading && !user) {
       router.push('/auth/login');
@@ -56,18 +69,6 @@ export default function ProfilePage() {
       loadReports();
     }
   }, [user, loading, router]);
-
-  const loadReports = async () => {
-    if (!user) return;
-    try {
-      const userReports = await getUserReports(user.uid);
-      setReports(userReports);
-    } catch (error) {
-      console.error('Failed to load reports:', error);
-    } finally {
-      setLoadingReports(false);
-    }
-  };
 
   const handleSavePrefs = async () => {
     if (!user) return;
@@ -98,7 +99,7 @@ export default function ProfilePage() {
   const initials = user.name?.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2) || '??';
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--background)' }}>
+    <div className="min-h-dvh pb-24 lg:pb-8" style={{ backgroundColor: 'var(--background)' }}>
       <AppHeader title="My Profile" />
 
       {/* Profile header */}
@@ -122,7 +123,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <main className="max-w-lg mx-auto px-4 -mt-4 space-y-4">
+      <main className="max-w-lg lg:max-w-4xl mx-auto px-4 lg:px-8 -mt-4 space-y-4">
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-3">
           {[
@@ -170,6 +171,9 @@ export default function ProfilePage() {
             </div>
           </div>
         )}
+
+        {/* Membership & Payments */}
+        <MembershipActions user={user} />
 
         {/* Notification Preferences */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">

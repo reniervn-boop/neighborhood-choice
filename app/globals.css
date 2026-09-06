@@ -1,27 +1,169 @@
 @import "tailwindcss";
 
-/* ─── SX7RA Brand Palette ───────────────────────────────────────────────────── */
-/* Colors extracted directly from the official SX7RA logo SVG:                  */
-/*   Red  → #D52027  (the "7" glyph fill class .fil2)                           */
-/*   Dark red → #B8343A  (shadow/depth class .fil7)                             */
-/*   Near-black → #060709  (skyline silhouette class .fil0)                     */
+/* ════════════════════════════════════════════════════════════════════════════
+   SX7RA — COLOR TOKENS (Claude Design system)
+   Brand red = #D52027 (the "7" glyph). Brand black = #060709 (skyline).
+   ════════════════════════════════════════════════════════════════════════════ */
 :root {
-  --background: #F5F5F5;
-  --foreground: #060709;
+  /* ── Brand red ── */
+  --sx-red:            #D52027;
+  --sx-red-dark:       #B8343A;
+  --sx-red-light:      #E8353C;
+  --sx-red-bg:         #FFF1F1;
+  --sx-red-tint-12:    rgba(213,32,39,0.12);
+  --sx-red-tint-20:    rgba(204,18,18,0.20);
 
-  /* Primary: exact logo red (#D52027 = the "7") */
-  --primary: #D52027;
-  --primary-dark: #B8343A;
-  --primary-light: #E8353C;
-  --primary-bg: #FFF1F1;
+  /* ── Brand black ── */
+  --sx-black:          #060709;
+  --sx-black-soft:     #131315;
+  --sx-ink:            #060709;
 
-  /* Brand black: exact logo near-black (#060709 = skyline & text) */
-  --brand-black: #060709;
-  --brand-black-soft: #131315;
+  /* ── Neutrals ── */
+  --sx-white:          #FFFFFF;
+  --sx-paper:          #F5F5F5;
+  --sx-gray-50:        #F9FAFB;
+  --sx-gray-100:       #F3F4F6;
+  --sx-gray-200:       #E5E7EB;
+  --sx-gray-300:       #D1D5DB;
+  --sx-gray-400:       #9CA3AF;
+  --sx-gray-500:       #6B7280;
+  --sx-gray-600:       #4B5563;
+  --sx-gray-700:       #374151;
+  --sx-gray-900:       #111827;
 
-  /* Neutral */
-  --border: #E5E7EB;
-  --card: #FFFFFF;
+  /* ── Category / semantic accents ── */
+  --sx-security:       #C62828;  --sx-security-bg:    #FFEBEE;
+  --sx-maintenance:    #E65100;  --sx-maintenance-bg: #FFF3E0;
+  --sx-event:          #6A1B9A;  --sx-event-bg:       #F3E5F5;
+  --sx-finance:        #1565C0;  --sx-finance-bg:     #E3F2FD;
+  --sx-general:        #607D8B;  --sx-general-bg:     #EFF2F3;
+  --sx-governance:     #060709;  --sx-governance-bg:  #F3F3F3;
+  --sx-success:        #2E7D32;  --sx-success-bg:     #E8F5E9;
+
+  /* ── Alert severities ── */
+  --sx-alert-info:     #1565C0;  --sx-alert-info-bg:     #E3F2FD;
+  --sx-alert-warning:  #E65100;  --sx-alert-warning-bg:  #FFF3E0;
+  --sx-alert-critical: #C62828;  --sx-alert-critical-bg: #FFEBEE;
+
+  /* ── Halloween / seasonal ── */
+  --sx-halloween:        #FF6B00;
+  --sx-halloween-ground: #12121E;
+
+  /* ── Semantic aliases ── */
+  --color-primary:       var(--sx-red);
+  --color-primary-press: var(--sx-red-dark);
+  --color-background:    var(--sx-paper);
+  --surface-card:        var(--sx-white);
+  --surface-brand:       var(--sx-black);
+  --text-strong:         var(--sx-ink);
+  --text-body:           var(--sx-gray-700);
+  --text-muted:          var(--sx-gray-400);
+  --border-hairline:     var(--sx-gray-200);
+  --on-brand:            var(--sx-white);
+  --on-brand-muted:      rgba(255,255,255,0.55);
+
+  /* ── Legacy aliases (kept for backward compat) ── */
+  --background:      var(--sx-paper);
+  --foreground:      var(--sx-ink);
+  --primary:         var(--sx-red);
+  --primary-dark:    var(--sx-red-dark);
+  --primary-light:   var(--sx-red-light);
+  --primary-bg:      var(--sx-red-bg);
+  --brand-black:     var(--sx-black);
+  --brand-black-soft:var(--sx-black-soft);
+  --border:          var(--sx-gray-200);
+  --card:            var(--sx-white);
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SX7RA — TYPOGRAPHY TOKENS
+   Display: Anton   UI/Body: Geist   Numeric: Geist Mono
+   ════════════════════════════════════════════════════════════════════════════ */
+:root {
+  /* Families — point at Next.js font CSS vars injected by layout.tsx */
+  --font-display: var(--font-anton), 'Impact', 'Arial Narrow Bold', sans-serif;
+  --font-sans:    var(--font-geist-sans), system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono:    var(--font-geist-mono), ui-monospace, 'SF Mono', monospace;
+  --font-spooky:  var(--font-creepster), 'Anton', sans-serif;
+
+  /* Type scale */
+  --text-2xs:    0.625rem;
+  --text-xs:     0.75rem;
+  --text-sm:     0.875rem;
+  --text-base:   1rem;
+  --text-lg:     1.125rem;
+  --text-xl:     1.25rem;
+  --text-2xl:    1.5rem;
+  --text-3xl:    1.875rem;
+  --text-display:2.75rem;
+
+  /* Weights */
+  --fw-regular:  400;
+  --fw-medium:   500;
+  --fw-semibold: 600;
+  --fw-bold:     700;
+  --fw-extra:    800;
+
+  /* Line heights */
+  --leading-tight:   1.1;
+  --leading-snug:    1.3;
+  --leading-normal:  1.5;
+  --leading-relaxed: 1.6;
+
+  /* Tracking */
+  --tracking-wordmark: 0.03em;
+  --tracking-eyebrow:  0.12em;
+  --tracking-normal:   0;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SX7RA — SPACING, RADII & ELEVATION TOKENS
+   ════════════════════════════════════════════════════════════════════════════ */
+:root {
+  /* Spacing scale (4px base) */
+  --space-0:   0;
+  --space-1:   0.25rem;
+  --space-2:   0.5rem;
+  --space-3:   0.75rem;
+  --space-4:   1rem;
+  --space-5:   1.25rem;
+  --space-6:   1.5rem;
+  --space-8:   2rem;
+  --space-10:  2.5rem;
+  --space-12:  3rem;
+
+  /* App layout */
+  --gutter:      var(--space-4);
+  --content-max: 32rem;
+  --tap-target:  2.75rem;
+
+  /* Corner radii */
+  --radius-sm:    0.5rem;
+  --radius-md:    0.75rem;
+  --radius-lg:    1rem;
+  --radius-xl:    1.5rem;
+  --radius-sheet: 1.5rem;
+  --radius-pill:  9999px;
+
+  /* Elevation */
+  --shadow-xs:    0 1px 2px rgba(6,7,9,0.05);
+  --shadow-sm:    0 1px 3px rgba(6,7,9,0.08), 0 1px 2px rgba(6,7,9,0.04);
+  --shadow-md:    0 4px 12px rgba(6,7,9,0.10);
+  --shadow-lg:    0 10px 25px rgba(6,7,9,0.15);
+  --shadow-brand: 0 12px 30px rgba(6,7,9,0.40);
+  --shadow-fab:   0 6px 16px rgba(213,32,39,0.35);
+
+  /* Borders */
+  --border-width:  1px;
+  --border-strong: 2px;
+  --stripe-height: 0.375rem;
+
+  /* Motion */
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast:    150ms;
+  --dur-base:    250ms;
+  --dur-slow:    500ms;
+  --press-scale: 0.98;
 }
 
 @theme inline {
@@ -33,12 +175,34 @@
 }
 
 /* ─── Base ───────────────────────────────────────────────────────────────────── */
+html {
+  /* Stop iOS/Android from inflating body text in narrow columns, which makes
+     type sizes inconsistent between blocks on the same screen. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), 'Inter', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* viewport-fit=cover lets content run under the notch in landscape. */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* iOS Safari zooms the whole page in when a focused form control is under 16px
+   and never zooms back out, which leaves every later screen oversized and
+   shifted. Enforce a 16px floor on touch screens; visual sizing stays with the
+   utility classes (padding, radius, weight). */
+@media (pointer: coarse) {
+  input,
+  textarea,
+  select {
+    font-size: max(16px, 1em);
+  }
 }
 
 /* Display / heading font (Anton — bold condensed, matches SX7RA brand) */
@@ -56,11 +220,21 @@ body {
 }
 
 /* ─── Safe area helpers ──────────────────────────────────────────────────────── */
+/* These depend on viewport-fit=cover being set in app/layout.tsx — without it
+   every env(safe-area-inset-*) resolves to 0 and these rules do nothing. */
 .pb-safe {
   padding-bottom: max(1rem, env(safe-area-inset-bottom));
 }
 .bottom-nav {
   padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+/* Sticky app bars: keep the title clear of the translucent iOS status bar. */
+.app-bar-safe {
+  padding-top: env(safe-area-inset-top);
+}
+/* Bottom sheets that sit above the home indicator. */
+.sheet-safe {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* ─── SX7RA Logo text ────────────────────────────────────────────────────────── */

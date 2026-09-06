@@ -16,7 +16,7 @@ export default function Home() {
   // ── Unauthenticated landing ──────────────────────────────────────────────────
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--brand-black)' }}>
+      <div className="min-h-dvh flex flex-col lg:flex-row lg:items-stretch" style={{ backgroundColor: 'var(--brand-black)' }}>
         {/* Hero */}
         <div className="flex-1 flex flex-col items-center justify-center px-6 pt-16 pb-0 text-center relative overflow-hidden">
           {/* Official Logo */}
@@ -31,7 +31,7 @@ export default function Home() {
 
           {/* Tagline */}
           <p className="text-white/50 text-sm max-w-xs leading-relaxed mt-2">
-            "Working towards making SX7 a suburb of choice"
+            &ldquo;Working towards making SX7 a suburb of choice&rdquo;
           </p>
 
           {/* Skyline — sits at the very bottom of the hero, bleeds to edge */}
@@ -41,7 +41,7 @@ export default function Home() {
         </div>
 
         {/* Auth card */}
-        <div className="bg-white rounded-t-3xl px-6 pt-8 pb-10 shadow-2xl relative z-10">
+        <div className="bg-white rounded-t-3xl lg:rounded-none lg:rounded-r-3xl lg:w-96 lg:flex-shrink-0 px-6 pt-8 pb-10 lg:py-16 lg:px-12 shadow-2xl relative z-10 flex flex-col justify-center">
           <h2 className="text-2xl font-extrabold text-gray-900 mb-1">Welcome back</h2>
           <p className="text-gray-500 text-sm mb-6">
             Sign in or join your neighbourhood community
@@ -78,10 +78,10 @@ export default function Home() {
     : '??';
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--background)' }}>
+    <div className="min-h-dvh pb-24 lg:pb-8" style={{ backgroundColor: 'var(--background)' }}>
       {/* Header — black brand bar */}
       <header style={{ backgroundColor: 'var(--brand-black)' }} className="text-white shadow-md">
-        <div className="max-w-lg mx-auto px-4 pt-4 pb-0">
+        <div className="max-w-lg lg:max-w-none mx-auto px-4 lg:px-8 pt-4 pb-0">
           <div className="flex items-center justify-between mb-4">
             {/* SX7RA logo + greeting */}
             <div className="flex flex-col gap-1">
@@ -133,7 +133,7 @@ export default function Home() {
       {/* Alerts ticker */}
       {alerts.length > 0 && <AlertsTicker alerts={alerts} />}
 
-      <main className="max-w-lg mx-auto px-4 py-5">
+      <main className="max-w-lg lg:max-w-5xl mx-auto px-4 lg:px-8 py-5">
         {/* Emergency quick-dial */}
         <Link
           href="/contacts"
@@ -159,7 +159,7 @@ export default function Home() {
           Quick Actions
         </h2>
 
-        <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           {/* Report Issue — primary action */}
           <Link
             href="/report"
@@ -202,7 +202,7 @@ export default function Home() {
           {/* Crime Dashboard */}
           <QuickCard href="/crime" emoji="🔍" label="Crime Report" sub="Security intelligence" />
           {/* Contacts */}
-          <QuickCard href="/contacts" emoji="📞" label="Contacts" sub="Committee &amp; emergency" />
+          <QuickCard href="/contacts" emoji="📞" label="Contacts" sub="Committee & emergency" />
           {/* AGM */}
           <QuickCard href="/agm" emoji="🗳" label="AGM / Voting" sub="Governance" />
           {/* Finance */}
@@ -210,14 +210,22 @@ export default function Home() {
           {/* Leaderboard */}
           <QuickCard href="/leaderboard" emoji="🏆" label="Leaderboard" sub="Top reporters" />
           {/* Profile */}
-          <QuickCard href="/profile" emoji="👤" label="My Profile" sub="Stats &amp; settings" />
+          <QuickCard href="/profile" emoji="👤" label="My Profile" sub="Stats & settings" />
           {/* Constitution */}
-          <QuickCard href="/constitution" emoji="📋" label="Constitution" sub="Governance rules" />
+          <QuickCard href="/governance" emoji="📜" label="Governance" sub="Constitution, MOI & roles" />
+          {/* Documents */}
+          <QuickCard href="/documents" emoji="📁" label="Documents" sub="Minutes, reports & templates" />
+          {/* Ward */}
+          <QuickCard href="/ward" emoji="🏛️" label="Ward 134" sub="Councillor & petitions" />
+          {/* Prospectus */}
+          <QuickCard href="/prospectus" emoji="🏘️" label="SX7 Prospectus" sub="Property, business & sponsors" />
+          {/* Security */}
+          <QuickCard href="/security" emoji="🔒" label="Security" sub="Provider & quotes" />
 
           {/* Upcoming Events — full-width card */}
           <Link
             href="/events"
-            className="col-span-2 rounded-2xl overflow-hidden shadow-sm transition-transform active:scale-[0.98] relative"
+            className="col-span-2 lg:col-span-4 rounded-2xl overflow-hidden shadow-sm transition-transform active:scale-[0.98] relative"
             style={{ backgroundColor: '#12121e' }}
           >
             {/* Orange accent bar */}
@@ -244,7 +252,7 @@ export default function Home() {
           {isCommittee && (
             <Link
               href="/committee"
-              className="col-span-2 flex items-center gap-4 rounded-2xl p-4 bg-white shadow-sm border border-gray-100 transition-transform active:scale-[0.98]"
+              className="col-span-2 lg:col-span-4 flex items-center gap-4 rounded-2xl p-4 bg-white shadow-sm border border-gray-100 transition-transform active:scale-[0.98]"
             >
               <div
                 className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 text-xl"
@@ -266,7 +274,7 @@ export default function Home() {
           {user?.role === 'admin' && !isCommittee && (
             <Link
               href="/admin"
-              className="col-span-2 flex items-center gap-4 rounded-2xl p-4 bg-white shadow-sm border border-gray-100 transition-transform active:scale-[0.98]"
+              className="col-span-2 lg:col-span-4 flex items-center gap-4 rounded-2xl p-4 bg-white shadow-sm border border-gray-100 transition-transform active:scale-[0.98]"
             >
               <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-gray-900">
                 <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -298,7 +306,7 @@ export default function Home() {
               <img src="/sx7ra-logo.svg" alt="SX7RA" className="h-7 w-auto" draggable={false} />
             </div>
             <p className="text-white/60 text-xs leading-relaxed italic">
-              "Working towards making SX7 a suburb of choice"
+              &ldquo;Working towards making SX7 a suburb of choice&rdquo;
             </p>
           </div>
         </div>
@@ -321,7 +329,7 @@ function QuickCard({ href, emoji, label, sub }: { href: string; emoji: string; l
       </div>
       <div className="text-center">
         <h3 className="font-bold text-gray-900 text-sm">{label}</h3>
-        <p className="text-gray-400 text-xs" dangerouslySetInnerHTML={{ __html: sub }} />
+        <p className="text-gray-400 text-xs">{sub}</p>
       </div>
     </Link>
   );

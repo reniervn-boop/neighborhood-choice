@@ -3,12 +3,12 @@ import Link from 'next/link';
 export default function HalloweenLayout({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="min-h-screen pb-24"
+      className="min-h-dvh pb-24"
       style={{ backgroundColor: '#0a0a0f', color: 'white' }}
     >
       {/* Halloween navigation bar */}
       <nav
-        className="sticky top-0 z-10 border-b px-4 py-3"
+        className="sticky top-0 z-10 border-b px-4 py-3 app-bar-safe"
         style={{ backgroundColor: '#12121e', borderColor: 'rgba(255,107,0,0.2)' }}
       >
         <div className="max-w-4xl mx-auto flex items-center justify-between">

@@ -11,7 +11,7 @@ export default async function HalloweenPage() {
   return (
     <div className="relative overflow-hidden">
       {/* Hero */}
-      <section className="relative min-h-[75vh] flex flex-col items-center justify-center text-center px-4 py-16">
+      <section className="relative min-h-[75dvh] flex flex-col items-center justify-center text-center px-4 py-16">
         {/* Background glow */}
         <div className="absolute inset-0 pointer-events-none">
           <div

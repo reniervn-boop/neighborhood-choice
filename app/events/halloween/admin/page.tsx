@@ -129,7 +129,7 @@ export default function HalloweenAdminPage() {
 
   if (!authenticated) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center px-4">
+      <div className="min-h-[70dvh] flex items-center justify-center px-4">
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
             <p className="text-5xl mb-3">🔑</p>
@@ -357,7 +357,7 @@ export default function HalloweenAdminPage() {
               <p className="text-sm">No sightings pinned yet</p>
             </div>
           ) : (
-            <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
+            <div className="space-y-3 max-h-[70dvh] overflow-y-auto pr-1">
               {photos
                 .slice()
                 .reverse()

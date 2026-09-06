@@ -74,6 +74,39 @@ function makeSVG(id: string) {
 
 type Tab = 'overview' | 'timeline' | 'timing' | 'heatmap';
 
+// ── Panel & section helpers ──────────────────────────────────────────────────
+// Defined at module scope on purpose: declared inside CrimeDashboardPage these
+// were new component types on every render, so every state change (including a
+// chart hover) remounted the panels — and with them the <svg> elements the
+// charts are drawn into imperatively.
+
+
+const Panel = ({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) => (
+  <div style={{ background: '#13161E', border: '1px solid #1F2433', borderRadius: 14, padding: 20, ...style }}>
+    {children}
+  </div>
+);
+
+const SecTitle = ({ color, children }: { color: string; children: React.ReactNode }) => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 800, color, marginBottom: 4 }}>
+    <span style={{ display: 'block', width: 3, height: 18, borderRadius: 2, background: color, flexShrink: 0 }} />
+    {children}
+  </div>
+);
+
+const SecSub = ({ children }: { children: React.ReactNode }) => (
+  <div style={{ fontSize: 12, color: '#8A93A2', marginBottom: 16, paddingLeft: 11 }}>{children}</div>
+);
+
+const TBucket = ({ pct, label, sub, count, color }: { pct: string; label: string; sub: string; count: string; color: string }) => (
+  <div style={{ background: '#1A1E29', borderRadius: 10, padding: '12px 14px', borderLeft: `3px solid ${color}` }}>
+    <div style={{ fontSize: 22, fontWeight: 900, fontFamily: 'monospace', color }}>{pct}</div>
+    <div style={{ fontSize: 13, fontWeight: 700, color: '#E8EAF0', marginTop: 2 }}>{label}</div>
+    <div style={{ fontSize: 11, color: '#8A93A2' }}>{sub}</div>
+    <div style={{ fontSize: 11, color: '#48505F', marginTop: 2 }}>{count}</div>
+  </div>
+);
+
 export default function CrimeDashboardPage() {
   const [tab, setTab] = useState<Tab>('overview');
   const [activeCat, setActiveCat] = useState<string | null>(null);
@@ -371,34 +404,6 @@ export default function CrimeDashboardPage() {
     return () => window.removeEventListener('resize', onResize);
   }, [activeCat, renderAll]);
 
-  // ── Panel & section helpers ───────────────────────────────────────────────
-
-  const P = ({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) => (
-    <div style={{ background: '#13161E', border: '1px solid #1F2433', borderRadius: 14, padding: 20, ...style }}>
-      {children}
-    </div>
-  );
-
-  const SecTitle = ({ color, children }: { color: string; children: React.ReactNode }) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 800, color, marginBottom: 4 }}>
-      <span style={{ display: 'block', width: 3, height: 18, borderRadius: 2, background: color, flexShrink: 0 }} />
-      {children}
-    </div>
-  );
-
-  const SecSub = ({ children }: { children: React.ReactNode }) => (
-    <div style={{ fontSize: 12, color: '#8A93A2', marginBottom: 16, paddingLeft: 11 }}>{children}</div>
-  );
-
-  const TBucket = ({ pct, label, sub, count, color }: { pct: string; label: string; sub: string; count: string; color: string }) => (
-    <div style={{ background: '#1A1E29', borderRadius: 10, padding: '12px 14px', borderLeft: `3px solid ${color}` }}>
-      <div style={{ fontSize: 22, fontWeight: 900, fontFamily: 'monospace', color }}>{pct}</div>
-      <div style={{ fontSize: 13, fontWeight: 700, color: '#E8EAF0', marginTop: 2 }}>{label}</div>
-      <div style={{ fontSize: 11, color: '#8A93A2' }}>{sub}</div>
-      <div style={{ fontSize: 11, color: '#48505F', marginTop: 2 }}>{count}</div>
-    </div>
-  );
-
   // ── Tab bar ───────────────────────────────────────────────────────────────
 
   const tabs: { id: Tab; label: string }[] = [
@@ -409,7 +414,7 @@ export default function CrimeDashboardPage() {
   ];
 
   return (
-    <div style={{ background: '#0D0F14', minHeight: '100vh', paddingBottom: 96, color: '#E8EAF0', fontFamily: 'system-ui,-apple-system,"Segoe UI",sans-serif' }}>
+    <div style={{ background: '#0D0F14', minHeight: '100dvh', paddingBottom: 96, color: '#E8EAF0', fontFamily: 'system-ui,-apple-system,"Segoe UI",sans-serif' }}>
 
       {/* Tooltip */}
       {tip && (
@@ -469,13 +474,13 @@ export default function CrimeDashboardPage() {
         {/* ── OVERVIEW ── */}
         <div style={{ display: tab === 'overview' ? 'flex' : 'none', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '5fr 4fr', gap: 16 }}>
-            <P>
+            <Panel>
               <SecTitle color="#FF3B30">Incidents by Type</SecTitle>
               <SecSub>Click a bar to highlight</SecSub>
               <svg id="cat-chart" width="100%" height="260" style={{ overflow: 'visible', display: 'block' }} />
-            </P>
+            </Panel>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <P style={{ flex: 1 }}>
+              <Panel style={{ flex: 1 }}>
                 <SecTitle color="#FF9F0A">Time of Day Split</SecTitle>
                 <div style={{ height: 8 }} />
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
@@ -484,13 +489,13 @@ export default function CrimeDashboardPage() {
                   <TBucket pct="34.3%" label="Afternoon" sub="12:00–18:00" count="563 msgs" color="#FF9F0A" />
                   <TBucket pct="26%"   label="Evening"   sub="18:00–23:00" count="427 msgs" color="#BF5AF2" />
                 </div>
-              </P>
-              <P>
+              </Panel>
+              <Panel>
                 <SecTitle color="#BF5AF2">Day of Week</SecTitle>
                 <div style={{ height: 10 }} />
                 <div id="dow-bars" />
                 <div style={{ fontSize: 11, color: '#8A93A2', marginTop: 10 }}>Mon &amp; Thu busiest · Sundays 40% quieter</div>
-              </P>
+              </Panel>
             </div>
           </div>
 
@@ -513,11 +518,11 @@ export default function CrimeDashboardPage() {
 
         {/* ── TIMELINE ── */}
         <div style={{ display: tab === 'timeline' ? 'flex' : 'none', flexDirection: 'column', gap: 16 }}>
-          <P>
+          <Panel>
             <SecTitle color="#FF9F0A">Crime Categories by Year — Stacked</SecTitle>
             <SecSub>Full picture of how incidents shifted over time</SecSub>
             <svg id="stack-chart" width="100%" height="300" style={{ display: 'block', overflow: 'visible' }} />
-          </P>
+          </Panel>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             {[
               { id: 'theft-chart', color: '#FF9F0A', title: 'Theft Trend',         sub: 'Rose sharply in 2022–2023' },
@@ -525,11 +530,11 @@ export default function CrimeDashboardPage() {
               { id: 'bi-chart',    color: '#BF5AF2', title: 'House Break-ins',     sub: 'Lockdown 2020 saw a clear spike' },
               { id: 'ar-chart',    color: '#FF6340', title: 'Armed Robbery',       sub: '2024 saw a return of armed crime' },
             ].map(c => (
-              <P key={c.id}>
+              <Panel key={c.id}>
                 <SecTitle color={c.color}>{c.title}</SecTitle>
                 <SecSub>{c.sub}</SecSub>
                 <svg id={c.id} width="100%" height="160" style={{ display: 'block', overflow: 'visible' }} />
-              </P>
+              </Panel>
             ))}
           </div>
         </div>
@@ -537,7 +542,7 @@ export default function CrimeDashboardPage() {
         {/* ── TIMING ── */}
         <div style={{ display: tab === 'timing' ? 'flex' : 'none', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: 16 }}>
-            <P>
+            <Panel>
               <SecTitle color="#FFD60A">Crime Discussion by Hour of Day</SecTitle>
               <SecSub>When does the neighbourhood talk about crime?</SecSub>
               <svg id="hour-chart" width="100%" height="220" style={{ display: 'block', overflow: 'visible' }} />
@@ -548,14 +553,14 @@ export default function CrimeDashboardPage() {
                   </span>
                 ))}
               </div>
-            </P>
+            </Panel>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <P>
+              <Panel>
                 <SecTitle color="#BF5AF2">Day of Week</SecTitle>
                 <div style={{ height: 10 }} />
                 <div id="dow-bars2" />
-              </P>
-              <P>
+              </Panel>
+              <Panel>
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#8A93A2', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Key Timing Insights</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {[
@@ -570,10 +575,10 @@ export default function CrimeDashboardPage() {
                     </div>
                   ))}
                 </div>
-              </P>
+              </Panel>
             </div>
           </div>
-          <P>
+          <Panel>
             <SecTitle color="#32ADE6">24-Hour Crime Activity Profile</SecTitle>
             <SecSub>Proportional height — one column per hour</SecSub>
             <div id="strip24" style={{ display: 'flex', height: 48, borderRadius: 8, overflow: 'hidden', gap: 1 }} />
@@ -582,12 +587,12 @@ export default function CrimeDashboardPage() {
                 <span key={t} style={{ fontSize: 10, color: '#48505F' }}>{t}</span>
               ))}
             </div>
-          </P>
+          </Panel>
         </div>
 
         {/* ── HEATMAP ── */}
         <div style={{ display: tab === 'heatmap' ? 'flex' : 'none', flexDirection: 'column', gap: 16 }}>
-          <P>
+          <Panel>
             <SecTitle color="#FF3B30">Monthly Crime Activity Heatmap</SecTitle>
             <SecSub>Hover over cells to see message counts · Note: 2018–2019 not in dataset</SecSub>
             <div id="heatmap-grid" />
@@ -599,7 +604,7 @@ export default function CrimeDashboardPage() {
               ))}
               <span style={{ fontSize: 10, color: '#8A93A2' }}>More</span>
             </div>
-          </P>
+          </Panel>
 
           {/* Peak month cards */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14 }}>

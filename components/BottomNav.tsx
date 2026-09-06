@@ -73,14 +73,14 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 bottom-nav shadow-2xl"
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bottom-nav shadow-2xl"
       style={{ backgroundColor: 'var(--brand-black)' }}
     >
       {/* Joburg skyline silhouette */}
       <div className="w-full overflow-hidden select-none pointer-events-none" style={{ height: 28, borderTop: '1px solid #2a2a2a' }}>
         <svg
           viewBox="0 0 375 44"
-          preserveAspectRatio="xMidYMax meet"
+          preserveAspectRatio="none"
           aria-hidden="true"
           className="w-full h-full"
         >
@@ -103,8 +103,8 @@ export default function BottomNav() {
                 className="flex-1 flex flex-col items-center justify-center py-2 relative"
               >
                 <div
-                  style={{ backgroundColor: 'var(--primary)', borderColor: 'var(--brand-black)' }}
-                  className="absolute -top-5 w-14 h-14 rounded-full flex items-center justify-center shadow-lg border-4"
+                  style={{ backgroundColor: 'var(--primary)', borderColor: 'var(--brand-black)', boxShadow: 'var(--shadow-fab)' }}
+                  className="absolute -top-5 w-14 h-14 rounded-full flex items-center justify-center border-4"
                 >
                   <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />

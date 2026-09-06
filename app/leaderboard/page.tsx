@@ -15,15 +15,7 @@ export default function LeaderboardPage() {
   const [leaderboard, setLeaderboard] = useState<User[]>([]);
   const [loadingData, setLoadingData] = useState(true);
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/auth/login');
-      return;
-    }
-    if (user) loadLeaderboard();
-  }, [user, loading, router]);
-
-  const loadLeaderboard = async () => {
+  async function loadLeaderboard() {
     try {
       const data = await getLeaderboard(50);
       setLeaderboard(data);
@@ -32,7 +24,15 @@ export default function LeaderboardPage() {
     } finally {
       setLoadingData(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/auth/login');
+      return;
+    }
+    if (user) loadLeaderboard();
+  }, [user, loading, router]);
 
   if (loading || loadingData) return <LoadingScreen message="Loading leaderboard..." />;
   if (!user) return null;
@@ -42,7 +42,7 @@ export default function LeaderboardPage() {
   const rest = leaderboard.slice(3);
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--background)' }}>
+    <div className="min-h-dvh pb-24 lg:pb-8" style={{ backgroundColor: 'var(--background)' }}>
       <AppHeader
         title="Leaderboard"
         rightElement={
@@ -57,7 +57,7 @@ export default function LeaderboardPage() {
         }
       />
 
-      <main className="max-w-lg mx-auto">
+      <main className="max-w-lg lg:max-w-4xl mx-auto">
         {/* Your rank banner */}
         {userRank > 0 && (
           <div
